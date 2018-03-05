@@ -1,0 +1,134 @@
+<resources>
+    <string name="app_name">Entourage</string>
+    <string name="Establishment">Estabishment</string>
+    <string name="Radius">km</string>
+    <string-array name="placesTypes_array">
+        <item>Accounting,1</item>
+        <!--<item>Administrative Area Level 1,1001</item>-->
+        <!--<item>Administrative Area Level 2,1002</item>-->
+        <!--<item>Administrative Area Level 3,1003</item>-->
+        <item>Airport,2</item>
+        <item>Amusement Park,3</item>
+        <item>Aquarium,4</item>
+        <item>Art Gallery,5</item>
+        <item>Atm,6</item>
+        <item>Bakery,7</item>
+        <item>Bank,8</item>
+        <item>Bar,9</item>
+        <item>Beauty Salon,10</item>
+        <item>Bicycle Store,11</item>
+        <item>Book Store,12</item>
+        <item>Bowling Alley,13</item>
+        <item>Bus Station,14</item>
+        <item>Cafe,15</item>
+        <item>Campground,16</item>
+        <item>Car Dealer,17</item>
+        <item>Car Rental,18</item>
+        <item>Car Repair,19</item>
+        <item>Car Wash,20</item>
+        <item>Casino,21</item>
+        <item>Cemetery,22</item>
+        <item>Church,23</item>
+        <item>City Hall,24</item>
+        <item>Clothing Store,25</item>
+        <!--<item>Colloquial Area,1004</item>-->
+        <item>Convenience Store,26</item>
+        <!--<item>Country,1005</item>-->
+        <item>Courthouse,27</item>
+        <item>Dentist,28</item>
+        <item>Department Store,29</item>
+        <item>Doctor,30</item>
+        <item>Electrician,31</item>
+        <item>Electronics Store,32</item>
+        <item>Embassy,33</item>
+        <item>Establishment,34</item>
+        <item>Finance,35</item>
+        <item>Fire Station,36</item>
+        <!--<item>Floor,1006</item>-->
+        <item>Florist,37</item>
+        <item>Food,38</item>
+        <item>Funeral Home,39</item>
+        <item>Furniture Store,40</item>
+        <item>Gas Station,41</item>
+        <item>General Contractor,42</item>
+        <!--<item>Geocode,1007</item>-->
+        <item>Grocery Or Supermarket,43</item>
+        <item>Gym,44</item>
+        <item>Hair Care,45</item>
+        <item>Hardware Store,46</item>
+        <item>Health,47</item>
+        <item>Hindu Temple,48</item>
+        <item>Home Goods Store,49</item>
+        <item>Hospital,50</item>
+        <item>Insurance Agency,51</item>
+        <!--<item>Intersection,1008</item>-->
+        <item>Jewelry Store,52</item>
+        <item>Laundry,53</item>
+        <item>Lawyer,54</item>
+        <item>Library,55</item>
+        <item>Liquor Store,56</item>
+        <!--<item>Locality,1009</item>-->
+        <item>Local Government Office,57</item>
+        <item>Locksmith,58</item>
+        <item>Lodging,59</item>
+        <item>Meal Delivery,60</item>
+        <item>Meal Takeaway,61</item>
+        <item>Mosque,62</item>
+        <item>Movie Rental,63</item>
+        <item>Movie Theater,64</item>
+        <item>Moving Company,65</item>
+        <item>Museum,66</item>
+        <!--<item>Natural Feature,1010</item>-->
+        <!--<item>Neighborhood,1011</item>-->
+        <item>Night Club,67</item>
+        <!--<item>Other,0</item>-->
+        <item>Painter,68</item>
+        <item>Park,69</item>
+        <item>Parking,70</item>
+        <item>Pet Store,71</item>
+        <item>Pharmacy,72</item>
+        <item>Physiotherapist,73</item>
+        <item>Place Of Worship,74</item>
+        <item>Plumber,75</item>
+        <!--<item>Point Of Interest,1013</item>-->
+        <item>Police,76</item>
+        <!--<item>Political,1012</item>-->
+        <!--<item>Postal Code,1015</item>-->
+        <!--<item>Postal Code Prefix,1016</item>-->
+        <!--<item>Postal Town,1017</item>-->
+        <!--<item>Post Box,1014</item>-->
+        <item>Post Office,77</item>
+        <!--<item>Premise,1018</item>-->
+        <item>Real Estate Agency,78</item>
+        <item>Restaurant,79</item>
+        <item>Roofing Contractor,80</item>
+        <!--<item>Room,1019</item>-->
+        <!--<item>Route,1020</item>-->
+        <item>Rv Park,81</item>
+        <item>School,82</item>
+        <item>Shoe Store,83</item>
+        <item>Shopping Mall,84</item>
+        <item>Spa,85</item>
+        <item>Stadium,86</item>
+        <item>Storage,87</item>
+        <item>Store,88</item>
+        <!--<item>Street Address,1021</item>-->
+        <!--<item>Sublocality,1022</item>-->
+        <!--<item>Sublocality Level 1,1023</item>-->
+        <!--<item>Sublocality Level 2,1024</item>-->
+        <!--<item>Sublocality Level 3,1025</item>-->
+        <!--<item>Sublocality Level 4,1026</item>-->
+        <!--<item>Sublocality Level 5,1027</item>-->
+        <!--<item>Subpremise,1028</item>-->
+        <item>Subway Station,89</item>
+        <item>Synagogue,90</item>
+        <!--<item>Synthetic Geocode,1029</item>-->
+        <item>Taxi Stand,91</item>
+        <item>Train Station,92</item>
+         <!--<item>Transit Station,1030</item>-->
+        <item>Travel Agency,93</item>
+        <item>University,94</item>
+        <item>Veterinary Care,95</item>
+        <item>Zoo,96</item>
+    </string-array>
+</resources>
