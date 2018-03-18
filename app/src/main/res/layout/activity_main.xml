@@ -71,14 +71,14 @@
 
     <Button
         android:id="@+id/search_button"
-        android:layout_width="226dp"
+        android:layout_width="178dp"
         android:layout_height="37dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="40dp"
+        android:layout_marginStart="16dp"
         android:text="@string/search"
         android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="@+id/map"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
 

@@ -17,7 +17,6 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.SeekBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,15 +33,21 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.toptoche.searchablespinnerlibrary.SearchableSpinner;
 
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import static com.david.entourage.AppConfig.*;
@@ -70,6 +75,7 @@ public class MainActivity extends AppCompatActivity
     private Location myLocation;
     private Circle mCircle;
     private List<String> placeTypes;
+    private List<Marker> markerList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,13 +87,14 @@ public class MainActivity extends AppCompatActivity
         estab_spinner = findViewById(R.id.estab_spinner);
         estab_spinner.setAdapter(adapter);
 
+        radius_textView = findViewById(R.id.radius_textView);
+
         radius_seekBar = findViewById(R.id.radius_seekBar);
         radius_seekBar.setOnSeekBarChangeListener(this);
+        radius_seekBar.setMax(49);
 
-        radius = radius_seekBar.getProgress() / 2 * 1000;
-
-        radius_textView = findViewById(R.id.radius_textView);
-        radius_textView.setText(radius/1000 + " " + getString(R.string.Radius));
+        /*radius = radius_seekBar.getProgress() / 2 * 1000;
+        radius_textView.setText(radius/1000 + " " + getString(R.string.Radius));*/
 
         placeTypes = Arrays.asList(getResources().getStringArray(R.array.placeTypes));
 
@@ -100,16 +107,29 @@ public class MainActivity extends AppCompatActivity
         buildGoogleApiClient();
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        markerList = new ArrayList<>();
     }
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-        radius = seekBar.getProgress() / 2 * 1000;
+        radius = (seekBar.getProgress() + 1) * 1000;
         radius_textView.setText(radius/1000 + " " + getString(R.string.Radius));
 
-        if (mCircle != null)
+        updateCamera();
+    }
+
+    private void updateCamera() {
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected() && mCircle != null){
             mCircle.setRadius(radius);
-        mGoogleMap.animateCamera(CameraUpdateFactory.zoomTo(getZoomLevel(mCircle)-(float)0.5));
+            LatLng latLng = new LatLng(myLocation.getLatitude(),myLocation.getLongitude());
+
+            CameraPosition cameraPosition = new CameraPosition.Builder()
+                    .target(latLng)
+                    .zoom(getZoomLevel(mCircle)-(float)0.5)
+                    .build();
+            mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        }
     }
 
     @Override
@@ -182,9 +202,6 @@ public class MainActivity extends AppCompatActivity
                         // Got last known location. In some rare situations this can be null.
                         if (location != null) {
                             myLocation = location;
-                            LatLng latLng = new LatLng(myLocation.getLatitude(),myLocation.getLongitude());
-                            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng,17);
-                            mGoogleMap.animateCamera(cameraUpdate);
                             CircleOptions circleOptions = new CircleOptions()
                                     .center(new LatLng(myLocation.getLatitude(), myLocation.getLongitude()))
                                     .radius(radius * 1000)
@@ -193,6 +210,7 @@ public class MainActivity extends AppCompatActivity
                                     .fillColor(Color.argb(128, 255, 0, 0));
 
                             mCircle = mGoogleMap.addCircle(circleOptions);
+                            updateCamera();
                         }
                     }
                 });
@@ -269,6 +287,11 @@ public class MainActivity extends AppCompatActivity
                 new Response.Listener<JSONObject>(){
                     @Override
                     public void onResponse(JSONObject result){
+                        for(int i=0; i<markerList.size(); i++){
+                            if(markerList.get(i)!= null){
+                                markerList.get(i).remove();
+                            }
+                        }
                         parseLocationResult(result);
                     }
                 },
@@ -284,15 +307,29 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void parseLocationResult(JSONObject result){
+        DataParser dataParser = new DataParser();
+        List<HashMap<String, String>> placesList = dataParser.parse(result);
 
+        for(int i=0; i<placesList.size(); i++){
+            MarkerOptions markerOptions = new MarkerOptions();
+            HashMap<String, String> place = placesList.get(i);
+
+            double lat = Double.parseDouble(place.get("lat"));
+            double lng = Double.parseDouble(place.get("lng"));
+            String placeName = place.get("place_name");
+            String vicinity = place.get("vicinity");
+            LatLng latLng = new LatLng(lat,lng);
+            markerOptions.position(latLng);
+            markerOptions.title(placeName + " : " + vicinity);
+            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+            markerList.add(mGoogleMap.addMarker(markerOptions));
+        }
     }
 
     @Override
     public void onClick(View view) {
-        if(radius > 0)
-            getNearbyPlaces(myLocation.getLatitude(),myLocation.getLongitude(),radius,placeTypes.get((int)estab_spinner.getSelectedItemId()));
-        else
-            debugMessage("Radius must be greater than 0");
+        int spinnerId = (int)estab_spinner.getSelectedItemId();
+        getNearbyPlaces(myLocation.getLatitude(),myLocation.getLongitude(),radius,placeTypes.get(spinnerId));
     }
 
     public float getZoomLevel(Circle circle) {
