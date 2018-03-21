@@ -16,7 +16,7 @@ import java.util.List;
 
 public class DataParser {
 
-    public List<HashMap<String, String>> parse(JSONObject jsonObject) {
+    public ArrayList<HashMap<String, String>> parse(JSONObject jsonObject) {
 
         JSONArray jsonArray = null;
         try {
@@ -29,9 +29,9 @@ public class DataParser {
         return getPlaces(jsonArray);
     }
 
-    private List<HashMap<String, String>> getPlaces(JSONArray jsonArray) {
+    private ArrayList<HashMap<String, String>> getPlaces(JSONArray jsonArray) {
         int placesCount = jsonArray.length();
-        List<HashMap<String, String>> placesList = new ArrayList<>();
+        ArrayList<HashMap<String, String>> placesList = new ArrayList<>();
         HashMap<String, String> placeMap = null;
         Log.d("Places", "getPlaces");
 
@@ -53,6 +53,7 @@ public class DataParser {
         HashMap<String, String> googlePlaceMap = new HashMap<String, String>();
         String placeName = "";
         String vicinity = "";
+        String icon = "";
         String latitude = "";
         String longitude = "";
         String reference = "";
@@ -66,11 +67,15 @@ public class DataParser {
             if (!googlePlaceJson.isNull("vicinity")) {
                 vicinity = googlePlaceJson.getString("vicinity");
             }
+            if(!googlePlaceJson.isNull("icon")){
+                icon = googlePlaceJson.getString("icon");
+            }
             latitude = googlePlaceJson.getJSONObject("geometry").getJSONObject("location").getString("lat");
             longitude = googlePlaceJson.getJSONObject("geometry").getJSONObject("location").getString("lng");
             reference = googlePlaceJson.getString("reference");
-            googlePlaceMap.put("place_name", placeName);
+            googlePlaceMap.put("name", placeName);
             googlePlaceMap.put("vicinity", vicinity);
+            googlePlaceMap.put("icon", icon);
             googlePlaceMap.put("lat", latitude);
             googlePlaceMap.put("lng", longitude);
             googlePlaceMap.put("reference", reference);

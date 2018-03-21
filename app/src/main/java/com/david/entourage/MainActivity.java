@@ -1,6 +1,7 @@
 package com.david.entourage;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -28,7 +29,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -53,18 +53,17 @@ import java.util.List;
 import static com.david.entourage.AppConfig.*;
 
 public class MainActivity extends AppCompatActivity
-    implements SeekBar.OnSeekBarChangeListener,
-    OnMapReadyCallback,
+    implements OnMapReadyCallback,
     ActivityCompat.OnRequestPermissionsResultCallback,
     GoogleApiClient.ConnectionCallbacks,
-    GoogleApiClient.OnConnectionFailedListener,
-    Button.OnClickListener{
+    GoogleApiClient.OnConnectionFailedListener{
 
-    private SearchableSpinner estab_spinner;
-    private TextView radius_textView;
-    private SeekBar radius_seekBar;
-    private MapFragment mapFrag;
-    private Button search_button;
+    private SearchableSpinner spinner_place;
+    private TextView textView_radius;
+    private SeekBar seekBar_radius;
+    private MapFragment fragMap;
+    private Button button_search;
+    private Button button_list;
 
     private ArrayAdapter<CharSequence> adapter;
     private GoogleMap mGoogleMap;
@@ -76,6 +75,7 @@ public class MainActivity extends AppCompatActivity
     private Circle mCircle;
     private List<String> placeTypes;
     private List<Marker> markerList;
+    private ArrayList<HashMap<String, String>> placeList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,62 +84,66 @@ public class MainActivity extends AppCompatActivity
 
         adapter = ArrayAdapter.createFromResource(this, R.array.placeTypes_UF, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        estab_spinner = findViewById(R.id.estab_spinner);
-        estab_spinner.setAdapter(adapter);
+        spinner_place = findViewById(R.id.place_spinner);
+        spinner_place.setAdapter(adapter);
 
-        radius_textView = findViewById(R.id.radius_textView);
+        textView_radius = findViewById(R.id.textView_radius);
 
-        radius_seekBar = findViewById(R.id.radius_seekBar);
-        radius_seekBar.setOnSeekBarChangeListener(this);
-        radius_seekBar.setMax(49);
+        seekBar_radius = findViewById(R.id.seekBar_radius);
+        seekBar_radius.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                radius = (seekBar.getProgress() + 1) * 1000;
+                textView_radius.setText(radius/1000 + " " + getString(R.string.Radius));
 
-        /*radius = radius_seekBar.getProgress() / 2 * 1000;
-        radius_textView.setText(radius/1000 + " " + getString(R.string.Radius));*/
+                updateCamera();
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+        seekBar_radius.setMax(49);
 
         placeTypes = Arrays.asList(getResources().getStringArray(R.array.placeTypes));
 
-        search_button = findViewById(R.id.search_button);
-        search_button.setOnClickListener(this);
+        button_search = findViewById(R.id.button_search);
+        button_search.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int spinnerId = (int) spinner_place.getSelectedItemId();
+                getNearbyPlaces(myLocation.getLatitude(),myLocation.getLongitude(),radius,placeTypes.get(spinnerId));
+            }
+        });
+        button_list = findViewById(R.id.button_list);
+        button_list.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(placeList != null){
+                    Intent intent = new Intent(MainActivity.this, PlaceList.class);
+                    intent.putExtra("placeList", placeList);
+                    startActivity(intent);
+                }
+                else{
+                    debugMessage("Need to search first");
+                }
+            }
+        });
 
-        mapFrag = ((MapFragment) getFragmentManager().findFragmentById(R.id.map));
-        mapFrag.getMapAsync(this);
+        fragMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.fragMap));
+        fragMap.getMapAsync(this);
 
         buildGoogleApiClient();
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         markerList = new ArrayList<>();
-    }
-
-    @Override
-    public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-        radius = (seekBar.getProgress() + 1) * 1000;
-        radius_textView.setText(radius/1000 + " " + getString(R.string.Radius));
-
-        updateCamera();
-    }
-
-    private void updateCamera() {
-        if (mGoogleApiClient != null && mGoogleApiClient.isConnected() && mCircle != null){
-            mCircle.setRadius(radius);
-            LatLng latLng = new LatLng(myLocation.getLatitude(),myLocation.getLongitude());
-
-            CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(latLng)
-                    .zoom(getZoomLevel(mCircle)-(float)0.5)
-                    .build();
-            mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-        }
-    }
-
-    @Override
-    public void onStartTrackingTouch(SeekBar seekBar) {
-
-    }
-
-    @Override
-    public void onStopTrackingTouch(SeekBar seekBar) {
-
     }
 
     @Override
@@ -226,15 +230,6 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    private void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-        mGoogleApiClient.connect();
-    }
-
     private void checkLocationPermission() {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -270,9 +265,13 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public void debugMessage(String message) {
-        Toast toast = Toast.makeText(this, message, Toast.LENGTH_LONG);
-        toast.show();
+    private void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+        mGoogleApiClient.connect();
     }
 
     public void getNearbyPlaces(double latitude, double longitude, int radius, String type) {
@@ -308,11 +307,11 @@ public class MainActivity extends AppCompatActivity
 
     public void parseLocationResult(JSONObject result){
         DataParser dataParser = new DataParser();
-        List<HashMap<String, String>> placesList = dataParser.parse(result);
+        placeList = dataParser.parse(result);
 
-        for(int i=0; i<placesList.size(); i++){
+        for(int i=0; i<placeList.size(); i++){
             MarkerOptions markerOptions = new MarkerOptions();
-            HashMap<String, String> place = placesList.get(i);
+            HashMap<String, String> place = placeList.get(i);
 
             double lat = Double.parseDouble(place.get("lat"));
             double lng = Double.parseDouble(place.get("lng"));
@@ -326,10 +325,17 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    @Override
-    public void onClick(View view) {
-        int spinnerId = (int)estab_spinner.getSelectedItemId();
-        getNearbyPlaces(myLocation.getLatitude(),myLocation.getLongitude(),radius,placeTypes.get(spinnerId));
+    private void updateCamera() {
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected() && mCircle != null){
+            mCircle.setRadius(radius);
+            LatLng latLng = new LatLng(myLocation.getLatitude(),myLocation.getLongitude());
+
+            CameraPosition cameraPosition = new CameraPosition.Builder()
+                    .target(latLng)
+                    .zoom(getZoomLevel(mCircle)-(float)0.5)
+                    .build();
+            mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        }
     }
 
     public float getZoomLevel(Circle circle) {
@@ -340,5 +346,10 @@ public class MainActivity extends AppCompatActivity
             zoomLevel =(float) (16 - Math.log(scale) / Math.log(2));
         }
         return zoomLevel;
+    }
+
+    public void debugMessage(String message) {
+        Toast toast = Toast.makeText(this, message, Toast.LENGTH_LONG);
+        toast.show();
     }
 }
