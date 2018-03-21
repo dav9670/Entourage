@@ -35,7 +35,6 @@ public class PlaceAdapter extends  RecyclerView.Adapter<PlaceAdapter.PlaceViewHo
     @Override
     public void onBindViewHolder(PlaceViewHolder holder, int position) {
         HashMap<String,String> place = placeList.get(position);
-        String imageUrl = place.get("icon");
         new DownloadImageTask(holder.imageView)
             .execute(place.get("icon"));
         holder.textView_name.setText(place.get("name"));
