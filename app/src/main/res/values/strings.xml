@@ -92,6 +92,7 @@
         <item>train_station</item>
         <item>transit_station</item>
         <item>travel_agency</item>
+        <item>university</item>
         <item>veterinary_care</item>
         <item>zoo</item>
     </string-array>
@@ -163,7 +164,6 @@
         <item>Pet Store</item>
         <item>Pharmacy</item>
         <item>Physiotherapist</item>
-        <item>Place Of Worship</item>
         <item>Plumber</item>
         <item>Police</item>
         <item>Post Office</item>
@@ -179,9 +179,11 @@
         <item>Storage</item>
         <item>Store</item>
         <item>Subway Station</item>
+        <item>Supermarket</item>
         <item>Synagogue</item>
         <item>Taxi Stand</item>
         <item>Train Station</item>
+        <item>Transit Station</item>
         <item>Travel Agency</item>
         <item>University</item>
         <item>Veterinary Care</item>

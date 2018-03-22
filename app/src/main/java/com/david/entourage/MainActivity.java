@@ -2,6 +2,7 @@ package com.david.entourage;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -54,9 +55,7 @@ import static com.david.entourage.AppConfig.*;
 
 public class MainActivity extends AppCompatActivity
     implements OnMapReadyCallback,
-    ActivityCompat.OnRequestPermissionsResultCallback,
-    GoogleApiClient.ConnectionCallbacks,
-    GoogleApiClient.OnConnectionFailedListener{
+    ActivityCompat.OnRequestPermissionsResultCallback{
 
     private SearchableSpinner spinner_place;
     private TextView textView_radius;
@@ -121,6 +120,7 @@ public class MainActivity extends AppCompatActivity
                 getNearbyPlaces(myLocation.getLatitude(),myLocation.getLongitude(),radius,placeTypes.get(spinnerId));
             }
         });
+
         button_list = findViewById(R.id.button_list);
         button_list.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -196,40 +196,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        checkLocationPermission();
-        mFusedLocationClient.getLastLocation()
-                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        // Got last known location. In some rare situations this can be null.
-                        if (location != null) {
-                            myLocation = location;
-                            CircleOptions circleOptions = new CircleOptions()
-                                    .center(new LatLng(myLocation.getLatitude(), myLocation.getLongitude()))
-                                    .radius(radius * 1000)
-                                    .strokeWidth(10)
-                                    .strokeColor(Color.GREEN)
-                                    .fillColor(Color.argb(128, 255, 0, 0));
-
-                            mCircle = mGoogleMap.addCircle(circleOptions);
-                            updateCamera();
-                        }
-                    }
-                });
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
-    }
-
     private void checkLocationPermission() {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -267,8 +233,53 @@ public class MainActivity extends AppCompatActivity
 
     private void buildGoogleApiClient() {
         mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
+                .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
+                    @Override
+                    public void onConnected(@Nullable Bundle bundle) {
+                        checkLocationPermission();
+                        mFusedLocationClient.getLastLocation()
+                                .addOnSuccessListener(MainActivity.this, new OnSuccessListener<Location>() {
+                                    @Override
+                                    public void onSuccess(Location location) {
+                                        // Got last known location. In some rare situations this can be null.
+                                        if (location != null) {
+                                            myLocation = location;
+                                            if(mGoogleMap!= null){
+                                                CircleOptions circleOptions = new CircleOptions()
+                                                        .center(new LatLng(myLocation.getLatitude(), myLocation.getLongitude()))
+                                                        .radius(radius * 1000)
+                                                        .strokeWidth(10)
+                                                        .strokeColor(Color.GREEN)
+                                                        .fillColor(Color.argb(128, 255, 0, 0));
+
+                                                mCircle = mGoogleMap.addCircle(circleOptions);
+                                                updateCamera();
+                                            }
+                                        }
+                                    }
+                                });
+                    }
+
+                    @Override
+                    public void onConnectionSuspended(int i) {
+
+                    }
+                })
+                .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
+                    @Override
+                    public void onConnectionFailed( ConnectionResult connectionResult ){
+                        if( connectionResult.hasResolution() ){
+                            try {
+                                // Start an Activity that tries to resolve the error
+                                connectionResult.startResolutionForResult(MainActivity.this, CONNECTION_FAILURE_RESOLUTION_REQUEST);
+                            }catch( IntentSender.SendIntentException e ){
+                                e.printStackTrace();
+                            }
+                        }else{
+                            Log.e("E:","Location services connection failed with code " + connectionResult.getErrorCode());
+                        }
+                    }
+                })
                 .addApi(LocationServices.API)
                 .build();
         mGoogleApiClient.connect();
@@ -315,7 +326,7 @@ public class MainActivity extends AppCompatActivity
 
             double lat = Double.parseDouble(place.get("lat"));
             double lng = Double.parseDouble(place.get("lng"));
-            String placeName = place.get("place_name");
+            String placeName = place.get("name");
             String vicinity = place.get("vicinity");
             LatLng latLng = new LatLng(lat,lng);
             markerOptions.position(latLng);
