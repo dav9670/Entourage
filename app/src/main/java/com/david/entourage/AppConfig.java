@@ -3,6 +3,7 @@ package com.david.entourage;
 public final class AppConfig {
 
     public static final int LOCATION_PERMISSION = 1;
+    public static final int CONNECTION_FAILURE_RESOLUTION_REQUEST = 2;
 
     public static final String TAG = "gplaces";
 

@@ -92,6 +92,7 @@
         <item>train_station</item>
         <item>transit_station</item>
         <item>travel_agency</item>
+        <item>university</item>
         <item>veterinary_care</item>
         <item>zoo</item>
     </string-array>
@@ -129,20 +130,14 @@
         <item>Electrician</item>
         <item>Electronics Store</item>
         <item>Embassy</item>
-        <item>Establishment</item>
-        <item>Finance</item>
         <item>Fire Station</item>
         <item>Florist</item>
-        <item>Food</item>
         <item>Funeral Home</item>
         <item>Furniture Store</item>
         <item>Gas Station</item>
-        <item>General Contractor</item>
-        <item>Grocery Or Supermarket</item>
         <item>Gym</item>
         <item>Hair Care</item>
         <item>Hardware Store</item>
-        <item>Health</item>
         <item>Hindu Temple</item>
         <item>Home Goods Store</item>
         <item>Hospital</item>
@@ -163,14 +158,12 @@
         <item>Moving Company</item>
         <item>Museum</item>
         <item>Night Club</item>
-        <item>Other</item>
         <item>Painter</item>
         <item>Park</item>
         <item>Parking</item>
         <item>Pet Store</item>
         <item>Pharmacy</item>
         <item>Physiotherapist</item>
-        <item>Place Of Worship</item>
         <item>Plumber</item>
         <item>Police</item>
         <item>Post Office</item>
@@ -186,9 +179,11 @@
         <item>Storage</item>
         <item>Store</item>
         <item>Subway Station</item>
+        <item>Supermarket</item>
         <item>Synagogue</item>
         <item>Taxi Stand</item>
         <item>Train Station</item>
+        <item>Transit Station</item>
         <item>Travel Agency</item>
         <item>University</item>
         <item>Veterinary Care</item>
