@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.android.gms.location.places.GeoDataClient;
+
 import java.util.HashMap;
 import java.util.List;
 
@@ -19,10 +21,12 @@ public class PlaceAdapter extends  RecyclerView.Adapter<PlaceAdapter.PlaceViewHo
 
     private Context mCtx;
     private List<HashMap<String,String>> placeList;
+    private GeoDataClient mGeoDataClient;
 
-    public PlaceAdapter(Context mCtx, List<HashMap<String, String>> placeList) {
+    public PlaceAdapter(Context mCtx, List<HashMap<String, String>> placeList, GeoDataClient geoDataClient) {
         this.mCtx = mCtx;
         this.placeList = placeList;
+        this.mGeoDataClient = geoDataClient;
     }
 
     @Override
@@ -35,8 +39,7 @@ public class PlaceAdapter extends  RecyclerView.Adapter<PlaceAdapter.PlaceViewHo
     @Override
     public void onBindViewHolder(PlaceViewHolder holder, int position) {
         HashMap<String,String> place = placeList.get(position);
-        new DownloadImageTask(holder.imageView)
-            .execute(place.get("icon"));
+        //holder.imageView.setImageBitmap();
         holder.textView_name.setText(place.get("name"));
     }
 

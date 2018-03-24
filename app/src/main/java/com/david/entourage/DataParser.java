@@ -1,6 +1,15 @@
 package com.david.entourage;
 
+import android.graphics.Bitmap;
+import android.support.annotation.NonNull;
 import android.util.Log;
+
+import com.google.android.gms.location.places.GeoDataClient;
+import com.google.android.gms.location.places.PlacePhotoMetadataBuffer;
+import com.google.android.gms.location.places.PlacePhotoMetadataResponse;
+import com.google.android.gms.location.places.PlaceTypes;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -33,13 +42,11 @@ public class DataParser {
         int placesCount = jsonArray.length();
         ArrayList<HashMap<String, String>> placesList = new ArrayList<>();
         HashMap<String, String> placeMap = null;
-        Log.d("Places", "getPlaces");
 
         for (int i = 0; i < placesCount; i++) {
             try {
                 placeMap = getPlace((JSONObject) jsonArray.get(i));
                 placesList.add(placeMap);
-                Log.d("Places", "Adding places");
 
             } catch (JSONException e) {
                 Log.d("Places", "Error in Adding places");
@@ -51,18 +58,18 @@ public class DataParser {
 
     private HashMap<String, String> getPlace(JSONObject googlePlaceJson) {
         HashMap<String, String> googlePlaceMap = new HashMap<String, String>();
-        String placeName = "";
+        String name = "";
         String vicinity = "";
         String icon = "";
         String latitude = "";
         String longitude = "";
         String reference = "";
-
-        Log.d("getPlace", "Entered");
+        String place_id = "";
 
         try {
+
             if (!googlePlaceJson.isNull("name")) {
-                placeName = googlePlaceJson.getString("name");
+                name = googlePlaceJson.getString("name");
             }
             if (!googlePlaceJson.isNull("vicinity")) {
                 vicinity = googlePlaceJson.getString("vicinity");
@@ -73,18 +80,20 @@ public class DataParser {
             latitude = googlePlaceJson.getJSONObject("geometry").getJSONObject("location").getString("lat");
             longitude = googlePlaceJson.getJSONObject("geometry").getJSONObject("location").getString("lng");
             reference = googlePlaceJson.getString("reference");
-            googlePlaceMap.put("name", placeName);
+            place_id = googlePlaceJson.getString("place_id");
+
+            googlePlaceMap.put("name", name);
             googlePlaceMap.put("vicinity", vicinity);
             googlePlaceMap.put("icon", icon);
             googlePlaceMap.put("lat", latitude);
             googlePlaceMap.put("lng", longitude);
             googlePlaceMap.put("reference", reference);
-            Log.d("getPlace", "Putting Places");
+            googlePlaceMap.put("place_id",place_id);
+
         } catch (JSONException e) {
             Log.d("getPlace", "Error");
             e.printStackTrace();
         }
         return googlePlaceMap;
     }
-
 }

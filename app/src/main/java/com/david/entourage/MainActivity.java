@@ -1,6 +1,6 @@
 package com.david.entourage;
 
-import android.content.DialogInterface;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
@@ -8,11 +8,9 @@ import android.graphics.Color;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -30,6 +28,8 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.GeoDataClient;
+import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -60,17 +60,19 @@ public class MainActivity extends AppCompatActivity
     private SearchableSpinner spinner_place;
     private TextView textView_radius;
     private SeekBar seekBar_radius;
-    private MapFragment fragMap;
     private Button button_search;
     private Button button_list;
 
-    private ArrayAdapter<CharSequence> adapter;
+    private ArrayAdapter<CharSequence> placeTypes_Adapter;
+    private MapFragment fragMap;
     private GoogleMap mGoogleMap;
     private GoogleApiClient mGoogleApiClient;
     private FusedLocationProviderClient mFusedLocationClient;
+    private GeoDataClient mGeoDataClient;
 
     private int radius;
-    private Location myLocation;
+    private boolean mLocationPermissionGranted;
+    private Location mLastKnownLocation;
     private Circle mCircle;
     private List<String> placeTypes;
     private List<Marker> markerList;
@@ -81,14 +83,21 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        adapter = ArrayAdapter.createFromResource(this, R.array.placeTypes_UF, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        markerList = new ArrayList<>();
+
         spinner_place = findViewById(R.id.place_spinner);
-        spinner_place.setAdapter(adapter);
-
         textView_radius = findViewById(R.id.textView_radius);
-
         seekBar_radius = findViewById(R.id.seekBar_radius);
+        button_search = findViewById(R.id.button_search);
+        button_list = findViewById(R.id.button_list);
+        fragMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.fragMap));
+        fragMap.getMapAsync(this);
+
+        //Sets text inside spinner
+        placeTypes_Adapter = ArrayAdapter.createFromResource(this, R.array.placeTypes_UF, android.R.layout.simple_spinner_item);
+        placeTypes_Adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner_place.setAdapter(placeTypes_Adapter);
+
         seekBar_radius.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
@@ -112,16 +121,16 @@ public class MainActivity extends AppCompatActivity
 
         placeTypes = Arrays.asList(getResources().getStringArray(R.array.placeTypes));
 
-        button_search = findViewById(R.id.button_search);
+
         button_search.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 int spinnerId = (int) spinner_place.getSelectedItemId();
-                getNearbyPlaces(myLocation.getLatitude(),myLocation.getLongitude(),radius,placeTypes.get(spinnerId));
+                getNearbyPlaces(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude(),radius,placeTypes.get(spinnerId));
             }
         });
 
-        button_list = findViewById(R.id.button_list);
+
         button_list.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -136,14 +145,10 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        fragMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.fragMap));
-        fragMap.getMapAsync(this);
 
         buildGoogleApiClient();
-
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
-        markerList = new ArrayList<>();
+        mGeoDataClient = Places.getGeoDataClient(this,null);
     }
 
     @Override
@@ -162,7 +167,7 @@ public class MainActivity extends AppCompatActivity
                 mGoogleMap.setMyLocationEnabled(true);
             } else {
                 //Request Location Permission
-                checkLocationPermission();
+                getLocationPermission();
             }
         } else {
 
@@ -171,82 +176,48 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        mLocationPermissionGranted = false;
         switch (requestCode) {
             case LOCATION_PERMISSION: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-                    if (ContextCompat.checkSelfPermission(this,
-                            android.Manifest.permission.ACCESS_FINE_LOCATION)
-                            == PackageManager.PERMISSION_GRANTED) {
-                        mGoogleMap.setMyLocationEnabled(true);
-                    }
-                } else {
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                    android.os.Process.killProcess(android.os.Process.myPid());
+                    mLocationPermissionGranted = true;
                 }
-                return;
             }
-
-            // other 'case' lines to check for other
-            // permissions this app might request.
         }
+        updateLocationUI();
     }
 
-    private void checkLocationPermission() {
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    android.Manifest.permission.ACCESS_FINE_LOCATION)) {
-
-                // Show an explanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
-                // sees the explanation, try again to request the permission.
-                new AlertDialog.Builder(this)
-                        .setTitle("Location Permission Needed")
-                        .setMessage("This app needs the Location permission, please accept to use location functionality")
-                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                //Prompt the user once explanation has been shown
-                                ActivityCompat.requestPermissions(MainActivity.this,
-                                        new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                                        LOCATION_PERMISSION);
-                            }
-                        })
-                        .create()
-                        .show();
-
-
-            } else {
-                // No explanation needed, we can request the permission.
-                ActivityCompat.requestPermissions(this,
-                        new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                        LOCATION_PERMISSION);
-            }
+    private void getLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            mLocationPermissionGranted = true;
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    LOCATION_PERMISSION);
         }
     }
 
     private void buildGoogleApiClient() {
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
+                    @SuppressLint("MissingPermission")
                     @Override
                     public void onConnected(@Nullable Bundle bundle) {
-                        checkLocationPermission();
+                        getLocationPermission();
                         mFusedLocationClient.getLastLocation()
                                 .addOnSuccessListener(MainActivity.this, new OnSuccessListener<Location>() {
                                     @Override
                                     public void onSuccess(Location location) {
                                         // Got last known location. In some rare situations this can be null.
                                         if (location != null) {
-                                            myLocation = location;
+                                            mLastKnownLocation = location;
                                             if(mGoogleMap!= null){
                                                 CircleOptions circleOptions = new CircleOptions()
-                                                        .center(new LatLng(myLocation.getLatitude(), myLocation.getLongitude()))
+                                                        .center(new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()))
                                                         .radius(radius * 1000)
                                                         .strokeWidth(10)
                                                         .strokeColor(Color.GREEN)
@@ -283,6 +254,25 @@ public class MainActivity extends AppCompatActivity
                 .addApi(LocationServices.API)
                 .build();
         mGoogleApiClient.connect();
+    }
+
+    private void updateLocationUI() {
+        if (mGoogleMap == null) {
+            return;
+        }
+        try {
+            if (mLocationPermissionGranted) {
+                mGoogleMap.setMyLocationEnabled(true);
+                mGoogleMap.getUiSettings().setMyLocationButtonEnabled(true);
+            } else {
+                mGoogleMap.setMyLocationEnabled(false);
+                mGoogleMap.getUiSettings().setMyLocationButtonEnabled(false);
+                mLastKnownLocation = null;
+                getLocationPermission();
+            }
+        } catch (SecurityException e)  {
+            Log.e("Exception: %s", e.getMessage());
+        }
     }
 
     public void getNearbyPlaces(double latitude, double longitude, int radius, String type) {
@@ -339,7 +329,7 @@ public class MainActivity extends AppCompatActivity
     private void updateCamera() {
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected() && mCircle != null){
             mCircle.setRadius(radius);
-            LatLng latLng = new LatLng(myLocation.getLatitude(),myLocation.getLongitude());
+            LatLng latLng = new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
 
             CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(latLng)
