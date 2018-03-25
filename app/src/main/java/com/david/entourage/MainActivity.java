@@ -29,19 +29,20 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.GeoDataClient;
+import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.toptoche.searchablespinnerlibrary.SearchableSpinner;
 
 import org.json.JSONObject;
@@ -52,6 +53,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import static com.david.entourage.AppConfig.*;
+
+//close buffers
 
 public class MainActivity extends AppCompatActivity
     implements OnMapReadyCallback,
@@ -75,8 +78,8 @@ public class MainActivity extends AppCompatActivity
     private Location mLastKnownLocation;
     private Circle mCircle;
     private List<String> placeTypes;
-    private List<Marker> markerList;
-    private ArrayList<HashMap<String, String>> placeList;
+    private ArrayList<Marker> markerList;
+    private ArrayList<Place> nearbyPlaces;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +87,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         markerList = new ArrayList<>();
+        nearbyPlaces = new ArrayList<>();
 
         spinner_place = findViewById(R.id.place_spinner);
         textView_radius = findViewById(R.id.textView_radius);
@@ -134,13 +138,15 @@ public class MainActivity extends AppCompatActivity
         button_list.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(placeList != null){
+                if(nearbyPlaces.size() > 0){
+                    Gson gson = new GsonBuilder().registerTypeAdapter(Place.class,new PlaceInstanceCreator()).create();
+                    String gsonResponse = gson.toJson(nearbyPlaces);
                     Intent intent = new Intent(MainActivity.this, PlaceList.class);
-                    intent.putExtra("placeList", placeList);
+                    intent.putExtra("nearbyPlacesGson",gsonResponse);
                     startActivity(intent);
                 }
                 else{
-                    debugMessage("Need to search first");
+                    debugMessage("No establishment to show");
                 }
             }
         });
@@ -307,23 +313,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void parseLocationResult(JSONObject result){
-        DataParser dataParser = new DataParser();
-        placeList = dataParser.parse(result);
-
-        for(int i=0; i<placeList.size(); i++){
-            MarkerOptions markerOptions = new MarkerOptions();
-            HashMap<String, String> place = placeList.get(i);
-
-            double lat = Double.parseDouble(place.get("lat"));
-            double lng = Double.parseDouble(place.get("lng"));
-            String placeName = place.get("name");
-            String vicinity = place.get("vicinity");
-            LatLng latLng = new LatLng(lat,lng);
-            markerOptions.position(latLng);
-            markerOptions.title(placeName + " : " + vicinity);
-            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
-            markerList.add(mGoogleMap.addMarker(markerOptions));
-        }
+        DataParser dataParser = new DataParser(nearbyPlaces, markerList, mGeoDataClient, mGoogleMap);
+        dataParser.setPlaces(result);
     }
 
     private void updateCamera() {

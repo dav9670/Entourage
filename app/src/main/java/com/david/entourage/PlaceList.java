@@ -5,20 +5,21 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
+import com.google.android.gms.location.places.Place;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 public class PlaceList extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private PlaceAdapter placeAdapter;
 
-    private ArrayList<HashMap<String,String>> placeList;
+    private ArrayList<Place> nearbyPlaces;
 
-    public PlaceList() {
-
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,8 +30,10 @@ public class PlaceList extends AppCompatActivity {
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        placeList = (ArrayList<HashMap<String,String>>)getIntent().getSerializableExtra("placeList");
-        placeAdapter = new PlaceAdapter(this,placeList);
+        String nearbyPlacesGson = getIntent().getStringExtra("nearbyPlacesGson");
+        Gson gson = new GsonBuilder().registerTypeAdapter(Place.class,new PlaceInstanceCreator()).create();
+        nearbyPlaces = gson.fromJson(nearbyPlacesGson, new TypeToken<ArrayList<Place>>(){}.getType());
+        placeAdapter = new PlaceAdapter(this, nearbyPlaces);
         recyclerView.setAdapter(placeAdapter);
     }
 }

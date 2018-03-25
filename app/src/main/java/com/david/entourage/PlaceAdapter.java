@@ -1,6 +1,7 @@
 package com.david.entourage;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,6 +10,15 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.gms.location.places.GeoDataClient;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.PlacePhotoMetadata;
+import com.google.android.gms.location.places.PlacePhotoMetadataBuffer;
+import com.google.android.gms.location.places.PlacePhotoMetadataResponse;
+import com.google.android.gms.location.places.PlacePhotoResponse;
+import com.google.android.gms.location.places.PlacePhotoResult;
+import com.google.android.gms.location.places.Places;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 
 import java.util.HashMap;
 import java.util.List;
@@ -20,13 +30,13 @@ import java.util.List;
 public class PlaceAdapter extends  RecyclerView.Adapter<PlaceAdapter.PlaceViewHolder> {
 
     private Context mCtx;
-    private List<HashMap<String,String>> placeList;
+    private List<Place> nearbyPlaces;
     private GeoDataClient mGeoDataClient;
 
-    public PlaceAdapter(Context mCtx, List<HashMap<String, String>> placeList, GeoDataClient geoDataClient) {
+    public PlaceAdapter(Context mCtx, List<Place> nearbyPlaces) {
         this.mCtx = mCtx;
-        this.placeList = placeList;
-        this.mGeoDataClient = geoDataClient;
+        this.nearbyPlaces = nearbyPlaces;
+        mGeoDataClient = Places.getGeoDataClient(mCtx, null);
     }
 
     @Override
@@ -38,14 +48,15 @@ public class PlaceAdapter extends  RecyclerView.Adapter<PlaceAdapter.PlaceViewHo
 
     @Override
     public void onBindViewHolder(PlaceViewHolder holder, int position) {
-        HashMap<String,String> place = placeList.get(position);
-        //holder.imageView.setImageBitmap();
-        holder.textView_name.setText(place.get("name"));
+        Place place = nearbyPlaces.get(position);
+        PhotoSetter photoSetter = new PhotoSetter(holder.imageView, mGeoDataClient);
+        photoSetter.setImage(place);
+        holder.textView_name.setText(place.getName());
     }
 
     @Override
     public int getItemCount() {
-        return placeList.size();
+        return nearbyPlaces.size();
     }
 
     class PlaceViewHolder extends RecyclerView.ViewHolder{
