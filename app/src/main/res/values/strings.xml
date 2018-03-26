@@ -3,6 +3,7 @@
     <string name="Establishment">Estabishment</string>
     <string name="Radius">km</string>
     <string name="search">Search</string>
+    <string name="company_image">Company image</string>
     <string-array name="placeTypes">
         <item>accounting</item>
         <item>airport</item>

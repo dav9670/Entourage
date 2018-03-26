@@ -29,7 +29,6 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.GeoDataClient;
-import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -41,20 +40,15 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.toptoche.searchablespinnerlibrary.SearchableSpinner;
 
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 import static com.david.entourage.AppConfig.*;
-
-//close buffers
 
 public class MainActivity extends AppCompatActivity
     implements OnMapReadyCallback,
@@ -79,7 +73,6 @@ public class MainActivity extends AppCompatActivity
     private Circle mCircle;
     private List<String> placeTypes;
     private ArrayList<Marker> markerList;
-    private ArrayList<Place> nearbyPlaces;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,7 +80,6 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         markerList = new ArrayList<>();
-        nearbyPlaces = new ArrayList<>();
 
         spinner_place = findViewById(R.id.place_spinner);
         textView_radius = findViewById(R.id.textView_radius);
@@ -129,8 +121,16 @@ public class MainActivity extends AppCompatActivity
         button_search.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                int spinnerId = (int) spinner_place.getSelectedItemId();
-                getNearbyPlaces(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude(),radius,placeTypes.get(spinnerId));
+                if(markerList != null){
+                    for(int i=markerList.size()-1; i>=0; i--){
+                        markerList.get(i).remove();
+                        markerList.remove(i);
+                    }
+                }
+                if(AppController.nearbyPlaces != null){
+                    AppController.nearbyPlaces.clear();
+                }
+                getNearbyPlaces(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude(),radius,placeTypes.get((int) spinner_place.getSelectedItemId()));
             }
         });
 
@@ -138,11 +138,8 @@ public class MainActivity extends AppCompatActivity
         button_list.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(nearbyPlaces.size() > 0){
-                    Gson gson = new GsonBuilder().registerTypeAdapter(Place.class,new PlaceInstanceCreator()).create();
-                    String gsonResponse = gson.toJson(nearbyPlaces);
+                if(AppController.nearbyPlaces.size() > 0){
                     Intent intent = new Intent(MainActivity.this, PlaceList.class);
-                    intent.putExtra("nearbyPlacesGson",gsonResponse);
                     startActivity(intent);
                 }
                 else{
@@ -293,11 +290,6 @@ public class MainActivity extends AppCompatActivity
                 new Response.Listener<JSONObject>(){
                     @Override
                     public void onResponse(JSONObject result){
-                        for(int i=0; i<markerList.size(); i++){
-                            if(markerList.get(i)!= null){
-                                markerList.get(i).remove();
-                            }
-                        }
                         parseLocationResult(result);
                     }
                 },
@@ -313,7 +305,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void parseLocationResult(JSONObject result){
-        DataParser dataParser = new DataParser(nearbyPlaces, markerList, mGeoDataClient, mGoogleMap);
+        DataParser dataParser = new DataParser(markerList, mGeoDataClient, mGoogleMap);
         dataParser.setPlaces(result);
     }
 

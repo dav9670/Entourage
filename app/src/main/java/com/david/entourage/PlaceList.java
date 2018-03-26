@@ -6,12 +6,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
 import com.google.android.gms.location.places.Place;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class PlaceList extends AppCompatActivity {
 
@@ -30,10 +26,7 @@ public class PlaceList extends AppCompatActivity {
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        String nearbyPlacesGson = getIntent().getStringExtra("nearbyPlacesGson");
-        Gson gson = new GsonBuilder().registerTypeAdapter(Place.class,new PlaceInstanceCreator()).create();
-        nearbyPlaces = gson.fromJson(nearbyPlacesGson, new TypeToken<ArrayList<Place>>(){}.getType());
-        placeAdapter = new PlaceAdapter(this, nearbyPlaces);
+        placeAdapter = new PlaceAdapter(this);
         recyclerView.setAdapter(placeAdapter);
     }
 }
