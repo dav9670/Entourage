@@ -16,12 +16,6 @@ import com.google.android.gms.location.places.Place;
 
 public class PlaceAdapter extends  RecyclerView.Adapter<PlaceAdapter.PlaceViewHolder> {
 
-    private Context mCtx;
-
-    public PlaceAdapter(Context mCtx) {
-        this.mCtx = mCtx;
-    }
-
     @Override
     public PlaceViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
@@ -37,7 +31,7 @@ public class PlaceAdapter extends  RecyclerView.Adapter<PlaceAdapter.PlaceViewHo
 
     @Override
     public int getItemCount() {
-        return AppController.nearbyPlaces.size();
+
     }
 
     @Override
@@ -57,11 +51,9 @@ public class PlaceAdapter extends  RecyclerView.Adapter<PlaceAdapter.PlaceViewHo
             textView_name = itemView.findViewById(R.id.textView_name);
         }
 
-        public void bind(Place place){
-            if(AppController.getPlacePhotos(place) != null && AppController.getPlacePhotos(place).size()>0){
-                imageView.setImageBitmap(AppController.getPlacePhotos(place).get(0));
-            }
-            textView_name.setText(place.getName());
+        public void bind(PlaceInfo placeInfo){
+            imageView.setImageBitmap(placeInfo.);
+            textView_name.setText(placeInfo.getName());
         }
     }
 }

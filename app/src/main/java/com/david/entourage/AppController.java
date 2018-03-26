@@ -20,15 +20,11 @@ public class AppController extends Application {
 
     private RequestQueue mRequestQueue;
     private static AppController sInstance;
-    public static ArrayList<Place> nearbyPlaces;
-    private static HashMap<Place,ArrayList<Bitmap>> placePhotos;
 
     @Override
     public void onCreate(){
         super.onCreate();
         sInstance = this;
-        nearbyPlaces = new ArrayList<>();
-        placePhotos = new HashMap<>();
     }
 
     public static synchronized AppController getInstance(){
@@ -56,18 +52,5 @@ public class AppController extends Application {
         if(mRequestQueue != null){
             mRequestQueue.cancelAll(Tag);
         }
-    }
-
-    public static void addPhotoPlace(Place place, Bitmap photo) {
-        if(placePhotos.get(place) == null){
-            placePhotos.put(place,new ArrayList<Bitmap>(Arrays.asList(photo)));
-        }
-        else{
-            placePhotos.get(place).add(photo);
-        }
-    }
-
-    public static ArrayList<Bitmap> getPlacePhotos(Place place) {
-        return placePhotos.get(place);
     }
 }

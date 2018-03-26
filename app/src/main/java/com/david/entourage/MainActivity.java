@@ -34,11 +34,13 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.toptoche.searchablespinnerlibrary.SearchableSpinner;
 
@@ -46,6 +48,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import static com.david.entourage.AppConfig.*;
@@ -73,6 +76,7 @@ public class MainActivity extends AppCompatActivity
     private Circle mCircle;
     private List<String> placeTypes;
     private ArrayList<Marker> markerList;
+    private ArrayList<HashMap<String,String>> nearbyPlaces;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +84,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         markerList = new ArrayList<>();
+        nearbyPlaces = new ArrayList<>();
 
         spinner_place = findViewById(R.id.place_spinner);
         textView_radius = findViewById(R.id.textView_radius);
@@ -127,8 +132,8 @@ public class MainActivity extends AppCompatActivity
                         markerList.remove(i);
                     }
                 }
-                if(AppController.nearbyPlaces != null){
-                    AppController.nearbyPlaces.clear();
+                if(nearbyPlaces.size() > 0){
+                    nearbyPlaces.clear();
                 }
                 getNearbyPlaces(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude(),radius,placeTypes.get((int) spinner_place.getSelectedItemId()));
             }
@@ -138,8 +143,13 @@ public class MainActivity extends AppCompatActivity
         button_list.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(AppController.nearbyPlaces.size() > 0){
-                    Intent intent = new Intent(MainActivity.this, PlaceList.class);
+                if(nearbyPlaces.size() > 0){
+                    ArrayList<String> placesId = new ArrayList<>();
+                    for(int i=0; i<nearbyPlaces.size(); i++){
+                        placesId.add(nearbyPlaces.get(i).get("place_id"));
+                    }
+                    Intent intent = new Intent(MainActivity.this, PlaceList.class)
+                            .putStringArrayListExtra("placesId",placesId);
                     startActivity(intent);
                 }
                 else{
@@ -290,7 +300,8 @@ public class MainActivity extends AppCompatActivity
                 new Response.Listener<JSONObject>(){
                     @Override
                     public void onResponse(JSONObject result){
-                        parseLocationResult(result);
+                        nearbyPlaces = DataParser.parse(result);
+                        setMarkers(nearbyPlaces);
                     }
                 },
                 new Response.ErrorListener(){
@@ -304,9 +315,15 @@ public class MainActivity extends AppCompatActivity
         AppController.getInstance().addToRequestQueue(request);
     }
 
-    public void parseLocationResult(JSONObject result){
-        DataParser dataParser = new DataParser(markerList, mGeoDataClient, mGoogleMap);
-        dataParser.setPlaces(result);
+    private void setMarkers(ArrayList<HashMap<String,String>> nearbyPlaces){
+        for(int i=0; i<nearbyPlaces.size(); i++){
+            HashMap<String,String> place = nearbyPlaces.get(i);
+            MarkerOptions markerOptions = new MarkerOptions()
+                    .position(new LatLng(Double.parseDouble(place.get("lat")),Double.parseDouble(place.get("lng"))))
+                    .title(place.get("name") + " : " + place.get("vicinity"))
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+            markerList.add(mGoogleMap.addMarker(markerOptions));
+        }
     }
 
     private void updateCamera() {

@@ -14,13 +14,17 @@ public class PlaceList extends AppCompatActivity {
     private RecyclerView recyclerView;
     private PlaceAdapter placeAdapter;
 
-    private ArrayList<Place> nearbyPlaces;
+    private ArrayList<String> placeIds;
+    private ArrayList<PlaceInfo> nearbyPlaces;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
+
+        placeIds = getIntent().getStringArrayListExtra("placesId");
+        nearbyPlaces = new ArrayList<>();
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
