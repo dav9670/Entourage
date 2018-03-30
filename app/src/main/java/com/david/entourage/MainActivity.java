@@ -75,8 +75,8 @@ public class MainActivity extends AppCompatActivity
     private Location mLastKnownLocation;
     private Circle mCircle;
     private List<String> placeTypes;
-    private List<Marker> markerList;
-    private ArrayList<HashMap<String, String>> placeList;
+    private ArrayList<Marker> markerList;
+    private ArrayList<HashMap<String,String>> nearbyPlaces;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +84,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         markerList = new ArrayList<>();
+        nearbyPlaces = new ArrayList<>();
 
         spinner_place = findViewById(R.id.place_spinner);
         textView_radius = findViewById(R.id.textView_radius);
@@ -125,8 +126,16 @@ public class MainActivity extends AppCompatActivity
         button_search.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                int spinnerId = (int) spinner_place.getSelectedItemId();
-                getNearbyPlaces(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude(),radius,placeTypes.get(spinnerId));
+                if(markerList != null){
+                    for(int i=markerList.size()-1; i>=0; i--){
+                        markerList.get(i).remove();
+                        markerList.remove(i);
+                    }
+                }
+                if(nearbyPlaces.size() > 0){
+                    nearbyPlaces.clear();
+                }
+                getNearbyPlaces(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude(),radius,placeTypes.get((int) spinner_place.getSelectedItemId()));
             }
         });
 
@@ -134,13 +143,17 @@ public class MainActivity extends AppCompatActivity
         button_list.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(placeList != null){
-                    Intent intent = new Intent(MainActivity.this, PlaceList.class);
-                    intent.putExtra("placeList", placeList);
+                if(nearbyPlaces.size() > 0){
+                    ArrayList<String> placesId = new ArrayList<>();
+                    for(int i=0; i<nearbyPlaces.size(); i++){
+                        placesId.add(nearbyPlaces.get(i).get("place_id"));
+                    }
+                    Intent intent = new Intent(MainActivity.this, PlaceList.class)
+                            .putStringArrayListExtra("placesId",placesId);
                     startActivity(intent);
                 }
                 else{
-                    debugMessage("Need to search first");
+                    debugMessage("No establishment to show");
                 }
             }
         });
@@ -287,12 +300,8 @@ public class MainActivity extends AppCompatActivity
                 new Response.Listener<JSONObject>(){
                     @Override
                     public void onResponse(JSONObject result){
-                        for(int i=0; i<markerList.size(); i++){
-                            if(markerList.get(i)!= null){
-                                markerList.get(i).remove();
-                            }
-                        }
-                        parseLocationResult(result);
+                        nearbyPlaces = DataParser.parse(result);
+                        setMarkers(nearbyPlaces);
                     }
                 },
                 new Response.ErrorListener(){
@@ -306,22 +315,13 @@ public class MainActivity extends AppCompatActivity
         AppController.getInstance().addToRequestQueue(request);
     }
 
-    public void parseLocationResult(JSONObject result){
-        DataParser dataParser = new DataParser();
-        placeList = dataParser.parse(result);
-
-        for(int i=0; i<placeList.size(); i++){
-            MarkerOptions markerOptions = new MarkerOptions();
-            HashMap<String, String> place = placeList.get(i);
-
-            double lat = Double.parseDouble(place.get("lat"));
-            double lng = Double.parseDouble(place.get("lng"));
-            String placeName = place.get("name");
-            String vicinity = place.get("vicinity");
-            LatLng latLng = new LatLng(lat,lng);
-            markerOptions.position(latLng);
-            markerOptions.title(placeName + " : " + vicinity);
-            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+    private void setMarkers(ArrayList<HashMap<String,String>> nearbyPlaces){
+        for(int i=0; i<nearbyPlaces.size(); i++){
+            HashMap<String,String> place = nearbyPlaces.get(i);
+            MarkerOptions markerOptions = new MarkerOptions()
+                    .position(new LatLng(Double.parseDouble(place.get("lat")),Double.parseDouble(place.get("lng"))))
+                    .title(place.get("name") + " : " + place.get("vicinity"))
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
             markerList.add(mGoogleMap.addMarker(markerOptions));
         }
     }
