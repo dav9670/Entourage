@@ -5,18 +5,20 @@ import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.android.gms.common.data.DataBufferObserver;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Observable;
 
 /**
  * Created by David on 3/26/2018.
  */
 
-public class PlaceInfo implements Parcelable{
+public class PlaceInfo extends Observable implements Parcelable{
     private CharSequence adress;
     private CharSequence attributions;
     private String id;
@@ -32,10 +34,6 @@ public class PlaceInfo implements Parcelable{
     private ArrayList<Bitmap> photos;
 
     public PlaceInfo(Place place) {
-        this.photos = new ArrayList<>();
-    }
-
-    public void setPlaceInfos(Place place){
         this.adress = place.getAddress();
         this.attributions = place.getAttributions();
         this.id = place.getId();
@@ -47,6 +45,11 @@ public class PlaceInfo implements Parcelable{
         this.rating = place.getRating();
         this.latLngBounds = place.getViewport();
         this.uri = place.getWebsiteUri();
+
+        this.photos = new ArrayList<>();
+
+        setChanged();
+        notifyObservers();
     }
 
     protected PlaceInfo(Parcel in) {
@@ -133,5 +136,9 @@ public class PlaceInfo implements Parcelable{
 
     public ArrayList<Bitmap> getPhotos() {
         return photos;
+    }
+
+    public void addPhoto(Bitmap photo){
+        photos.add(photo);
     }
 }

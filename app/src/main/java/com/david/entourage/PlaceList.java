@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
-import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.Places;
 
 import java.util.ArrayList;
 
@@ -23,14 +23,24 @@ public class PlaceList extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
 
-        placeIds = getIntent().getStringArrayListExtra("placesId");
         nearbyPlaces = new ArrayList<>();
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        placeAdapter = new PlaceAdapter(this);
+        placeAdapter = new PlaceAdapter(nearbyPlaces);
+        placeAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onChanged() {
+                super.onChanged();
+            }
+        });
         recyclerView.setAdapter(placeAdapter);
+
+        placeIds = getIntent().getStringArrayListExtra("placesId");
+
+        PlaceInfoGetter placeInfoGetter = new PlaceInfoGetter(nearbyPlaces, Places.getGeoDataClient(getApplicationContext(),null), placeAdapter);
+        placeInfoGetter.getPlaces(placeIds);
     }
 }
