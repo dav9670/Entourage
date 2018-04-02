@@ -1,7 +1,9 @@
 package com.david.entourage;
 
 import android.app.Application;
+import android.content.Context;
 import android.graphics.Bitmap;
+import android.location.Location;
 import android.text.TextUtils;
 import android.widget.Button;
 
@@ -20,6 +22,7 @@ public class AppController extends Application {
 
     private RequestQueue mRequestQueue;
     private static AppController sInstance;
+    private static Location lastKnownLocation;
 
     @Override
     public void onCreate(){
@@ -52,5 +55,17 @@ public class AppController extends Application {
         if(mRequestQueue != null){
             mRequestQueue.cancelAll(Tag);
         }
+    }
+
+    public static Context getContext(){
+        return sInstance.getApplicationContext();
+    }
+
+    public static Location getLastKnownLocation() {
+        return lastKnownLocation;
+    }
+
+    public static void setLastKnownLocation(Location lastKnownLocation) {
+        AppController.lastKnownLocation = lastKnownLocation;
     }
 }

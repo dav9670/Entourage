@@ -1,19 +1,17 @@
 package com.david.entourage;
 
-import android.content.Context;
+import android.graphics.BitmapFactory;
+import android.location.Location;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.google.android.gms.location.places.Place;
-
+import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Observable;
-import java.util.Observer;
 
 /**
  * Created by David on 3/21/2018.
@@ -54,6 +52,9 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
 
         private final ImageView imageView;
         private final TextView textView_name;
+        private final TextView textView_address;
+        private final TextView textView_tel;
+        private final TextView textView_distance;
 
         private PlaceInfo placeInfo;
 
@@ -63,6 +64,9 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
 
             imageView = itemView.findViewById(R.id.imageView);
             textView_name = itemView.findViewById(R.id.textView_name);
+            textView_address = itemView.findViewById(R.id.textView_address);
+            textView_tel = itemView.findViewById(R.id.textView_tel);
+            textView_distance = itemView.findViewById(R.id.textView_distance);
         }
 
         public void setPlaceInfo(PlaceInfo placeInfo){
@@ -71,8 +75,13 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
         }
 
         public void bind(){
-            imageView.setImageBitmap(placeInfo.getPhotos().size() > 0 ? placeInfo.getPhotos().get(0) : null);
+            imageView.setImageBitmap(placeInfo.getPhotos().size() > 0 ? placeInfo.getPhotos().get(0) : BitmapFactory.decodeResource(AppController.getContext().getResources(),R.drawable.ic_map_marker));
             textView_name.setText(placeInfo.getName());
+            textView_address.setText(placeInfo.getAdress());
+            textView_tel.setText(placeInfo.getPhoneNumber());
+            DecimalFormat df = new DecimalFormat();
+            df.setMaximumFractionDigits(2);
+            textView_distance.setText(df.format(placeInfo.getDistance()/1000) + "km");
         }
     }
 }

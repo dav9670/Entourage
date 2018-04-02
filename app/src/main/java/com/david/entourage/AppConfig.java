@@ -24,7 +24,7 @@ public final class AppConfig {
     public static final String LATITUDE = "lat";
     public static final String LONGITUDE = "lng";
     public static final String ICON = "icon";
-    public static final String SUPERMARKET_ID = "id";
+    public static final String ID = "id";
     public static final String NAME = "name";
     public static final String PLACE_ID = "place_id";
     public static final String REFERENCE = "reference";
@@ -34,4 +34,8 @@ public final class AppConfig {
     // remember to change the browser api key
 
     public static final String GOOGLE_BROWSER_API_KEY = "AIzaSyBqcsmV18Z-p7K9vA9gAtOBf9O1ZZgwN6Y";
+
+    //Dimensions of list_layout imageView
+    public static final int IMAGEVIEW_WIDTH = 120;
+    public static final int IMAGEVIEW_HEIGHT = 90;
 }

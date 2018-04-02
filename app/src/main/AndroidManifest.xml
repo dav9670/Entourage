@@ -41,7 +41,10 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".PlaceList"></activity>
+        <activity
+            android:name=".PlaceList"
+            android:parentActivityName=".MainActivity"
+            ></activity>
     </application>
 
 </manifest>

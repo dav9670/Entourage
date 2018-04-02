@@ -72,7 +72,6 @@ public class MainActivity extends AppCompatActivity
 
     private int radius;
     private boolean mLocationPermissionGranted;
-    private Location mLastKnownLocation;
     private Circle mCircle;
     private List<String> placeTypes;
     private ArrayList<Marker> markerList;
@@ -102,9 +101,20 @@ public class MainActivity extends AppCompatActivity
         seekBar_radius.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                if(markerList != null){
+                    for(int x=markerList.size()-1; x>=0; x--){
+                        markerList.get(x).remove();
+                        markerList.remove(x);
+                    }
+                }
+                if(nearbyPlaces.size() > 0){
+                    nearbyPlaces.clear();
+                }
+                if(button_list.getVisibility() == View.VISIBLE){
+                    button_list.setVisibility(View.INVISIBLE);
+                }
                 radius = (seekBar.getProgress() + 1) * 1000;
                 textView_radius.setText(radius/1000 + " " + getString(R.string.Radius));
-
                 updateCamera();
             }
 
@@ -135,7 +145,7 @@ public class MainActivity extends AppCompatActivity
                 if(nearbyPlaces.size() > 0){
                     nearbyPlaces.clear();
                 }
-                getNearbyPlaces(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude(),radius,placeTypes.get((int) spinner_place.getSelectedItemId()));
+                getNearbyPlaces(AppController.getLastKnownLocation().getLatitude(), AppController.getLastKnownLocation().getLongitude(),radius,placeTypes.get((int) spinner_place.getSelectedItemId()));
             }
         });
 
@@ -227,10 +237,10 @@ public class MainActivity extends AppCompatActivity
                                     public void onSuccess(Location location) {
                                         // Got last known location. In some rare situations this can be null.
                                         if (location != null) {
-                                            mLastKnownLocation = location;
+                                            AppController.setLastKnownLocation(location);
                                             if(mGoogleMap!= null){
                                                 CircleOptions circleOptions = new CircleOptions()
-                                                        .center(new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()))
+                                                        .center(new LatLng(AppController.getLastKnownLocation().getLatitude(), AppController.getLastKnownLocation().getLongitude()))
                                                         .radius(radius * 1000)
                                                         .strokeWidth(10)
                                                         .strokeColor(Color.GREEN)
@@ -280,7 +290,7 @@ public class MainActivity extends AppCompatActivity
             } else {
                 mGoogleMap.setMyLocationEnabled(false);
                 mGoogleMap.getUiSettings().setMyLocationButtonEnabled(false);
-                mLastKnownLocation = null;
+                AppController.setLastKnownLocation(null);
                 getLocationPermission();
             }
         } catch (SecurityException e)  {
@@ -301,7 +311,13 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onResponse(JSONObject result){
                         nearbyPlaces = DataParser.parse(result);
-                        setMarkers(nearbyPlaces);
+                        if(nearbyPlaces.size()>0){
+                            button_list.setVisibility(View.VISIBLE);
+                            setMarkers(nearbyPlaces);
+                        }
+                        else{
+                            button_list.setVisibility(View.INVISIBLE);
+                        }
                     }
                 },
                 new Response.ErrorListener(){
@@ -329,7 +345,7 @@ public class MainActivity extends AppCompatActivity
     private void updateCamera() {
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected() && mCircle != null){
             mCircle.setRadius(radius);
-            LatLng latLng = new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude());
+            LatLng latLng = new LatLng(AppController.getLastKnownLocation().getLatitude(),AppController.getLastKnownLocation().getLongitude());
 
             CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(latLng)

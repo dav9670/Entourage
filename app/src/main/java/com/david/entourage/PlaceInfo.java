@@ -1,6 +1,7 @@
 package com.david.entourage;
 
 import android.graphics.Bitmap;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -11,6 +12,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Locale;
 import java.util.Observable;
 
@@ -141,4 +143,24 @@ public class PlaceInfo extends Observable implements Parcelable{
     public void addPhoto(Bitmap photo){
         photos.add(photo);
     }
+
+    public float getDistance(){
+        float results[] = new float[1];
+        Location.distanceBetween(AppController.getLastKnownLocation().getLatitude(),AppController.getLastKnownLocation().getLongitude(),latLng.latitude,latLng.longitude,results);
+        return results[0];
+    }
+
+    public static Comparator<PlaceInfo> PlaceInfoCompDist = new Comparator<PlaceInfo>() {
+        @Override
+        public int compare(PlaceInfo placeInfo, PlaceInfo t1) {
+            return (int)(placeInfo.getDistance() - t1.getDistance());
+        }
+    };
+
+    public static Comparator<PlaceInfo> PlaceInfoCompName = new Comparator<PlaceInfo>() {
+        @Override
+        public int compare(PlaceInfo placeInfo, PlaceInfo t1) {
+            return placeInfo.getName().toString().compareTo(t1.getName().toString());
+        }
+    };
 }

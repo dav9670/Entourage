@@ -23,11 +23,15 @@ public class PlaceInfoGetter {
     private ArrayList<PlaceInfo> nearbyPlaces;
     private GeoDataClient geoDataClient;
     private RecyclerView.Adapter<PlaceAdapter.PlaceViewHolder> recyclerAdapter;
+    private int photoWidth;
+    private int photoHeight;
 
-    public PlaceInfoGetter(ArrayList<PlaceInfo> nearbyPlaces, GeoDataClient geoDataClient, RecyclerView.Adapter<PlaceAdapter.PlaceViewHolder> recyclerAdapter) {
+    public PlaceInfoGetter(ArrayList<PlaceInfo> nearbyPlaces, GeoDataClient geoDataClient, RecyclerView.Adapter<PlaceAdapter.PlaceViewHolder> recyclerAdapter, int photoWidth, int photoHeight) {
         this.nearbyPlaces = nearbyPlaces;
         this.geoDataClient = geoDataClient;
         this.recyclerAdapter = recyclerAdapter;
+        this.photoWidth = photoWidth;
+        this.photoHeight = photoHeight;
     }
 
     public void getPlaces(List<String> placesId){
@@ -39,14 +43,14 @@ public class PlaceInfoGetter {
                         for(int i=0; i<placeBufferResponse.getCount(); i++){
                             nearbyPlaces.add(new PlaceInfo((placeBufferResponse.get(i))));
                             recyclerAdapter.notifyDataSetChanged();
-                            getPhotos(nearbyPlaces.get(i),0, 1);
+                            getPhotos(nearbyPlaces.get(i),0, 1,photoWidth,photoHeight);
                         }
                         placeBufferResponse.release();
                     }
                 });
     }
 
-    public void getPhotos(PlaceInfo placeInfo, final int numStartPhoto, final int numLastPhoto){
+    public void getPhotos(PlaceInfo placeInfo, final int numStartPhoto, final int numLastPhoto, final int width, final int height){
         final int placeIndex = nearbyPlaces.indexOf(placeInfo);
         geoDataClient.getPlacePhotos(placeInfo.getId())
                 .addOnCompleteListener(new OnCompleteListener<PlacePhotoMetadataResponse>() {
@@ -54,7 +58,7 @@ public class PlaceInfoGetter {
                     public void onComplete(@NonNull Task<PlacePhotoMetadataResponse> task) {
                         PlacePhotoMetadataBuffer placePhotoMetadataBuffer = task.getResult().getPhotoMetadata();
                         for(int i=numStartPhoto; i<placePhotoMetadataBuffer.getCount() && i<numLastPhoto; i++) {
-                            geoDataClient.getPhoto(placePhotoMetadataBuffer.get(i))
+                            geoDataClient.getScaledPhoto(placePhotoMetadataBuffer.get(i),width,height)
                                     .addOnCompleteListener(new OnCompleteListener<PlacePhotoResponse>() {
                                         @Override
                                         public void onComplete(@NonNull Task<PlacePhotoResponse> task) {

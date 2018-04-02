@@ -1,5 +1,6 @@
 package com.david.entourage;
 
+import android.location.Location;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -40,7 +41,7 @@ public class PlaceList extends AppCompatActivity {
 
         placeIds = getIntent().getStringArrayListExtra("placesId");
 
-        PlaceInfoGetter placeInfoGetter = new PlaceInfoGetter(nearbyPlaces, Places.getGeoDataClient(getApplicationContext(),null), placeAdapter);
+        PlaceInfoGetter placeInfoGetter = new PlaceInfoGetter(nearbyPlaces, Places.getGeoDataClient(getApplicationContext(),null), placeAdapter, (int)Utils.convertDpToPixel(AppConfig.IMAGEVIEW_WIDTH,getApplicationContext()),(int)Utils.convertDpToPixel(AppConfig.IMAGEVIEW_HEIGHT,getApplicationContext()));
         placeInfoGetter.getPlaces(placeIds);
     }
 }

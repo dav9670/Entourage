@@ -4,6 +4,10 @@
     <string name="Radius">km</string>
     <string name="search">Search</string>
     <string name="company_image">Company image</string>
+    <string name="name">Name</string>
+    <string name="address">Address</string>
+    <string name="phone_number">Phone number</string>
+    <string name="sort_by">Sort by :</string>
     <string-array name="placeTypes">
         <item>accounting</item>
         <item>airport</item>
