@@ -1,4 +1,4 @@
-package com.david.entourage;
+package com.david.entourage.Application;
 
 public final class AppConfig {
 

@@ -1,22 +1,15 @@
-package com.david.entourage;
+package com.david.entourage.Application;
 
 import android.app.Application;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.location.Location;
 import android.text.TextUtils;
-import android.widget.Button;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
-import com.google.android.gms.location.places.Place;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-
-import static com.david.entourage.AppConfig.TAG;
+import static com.david.entourage.Application.AppConfig.TAG;
 
 public class AppController extends Application {
 

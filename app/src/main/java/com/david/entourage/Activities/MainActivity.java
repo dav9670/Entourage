@@ -1,4 +1,4 @@
-package com.david.entourage;
+package com.david.entourage.Activities;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -24,6 +24,9 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.david.entourage.Application.AppController;
+import com.david.entourage.DataParser;
+import com.david.entourage.R;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -51,7 +54,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import static com.david.entourage.AppConfig.*;
+import static com.david.entourage.Application.AppConfig.*;
 
 public class MainActivity extends AppCompatActivity
     implements OnMapReadyCallback,
@@ -158,7 +161,7 @@ public class MainActivity extends AppCompatActivity
                     for(int i=0; i<nearbyPlaces.size(); i++){
                         placesId.add(nearbyPlaces.get(i).get("place_id"));
                     }
-                    Intent intent = new Intent(MainActivity.this, PlaceList.class)
+                    Intent intent = new Intent(MainActivity.this, PlaceListActivity.class)
                             .putStringArrayListExtra("placesId",placesId);
                     startActivity(intent);
                 }

@@ -1,14 +1,14 @@
 package com.david.entourage;
 
 import android.graphics.BitmapFactory;
-import android.location.Location;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.david.entourage.Application.AppController;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -17,7 +17,7 @@ import java.util.ArrayList;
  * Created by David on 3/21/2018.
  */
 
-public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHolder> {
+public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHolder>{
 
     private ArrayList<PlaceInfo> nearbyPlaces;
 
@@ -48,7 +48,9 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
         return super.getItemViewType(position);
     }
 
-    class PlaceViewHolder extends RecyclerView.ViewHolder{
+
+    class PlaceViewHolder extends RecyclerView.ViewHolder
+    implements View.OnClickListener{
 
         private final ImageView imageView;
         private final TextView textView_name;
@@ -82,6 +84,11 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
             DecimalFormat df = new DecimalFormat();
             df.setMaximumFractionDigits(2);
             textView_distance.setText(df.format(placeInfo.getDistance()/1000) + "km");
+        }
+
+        @Override
+        public void onClick(View view) {
+
         }
     }
 }

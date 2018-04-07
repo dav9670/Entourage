@@ -6,7 +6,7 @@ import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.google.android.gms.common.data.DataBufferObserver;
+import com.david.entourage.Application.AppController;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;

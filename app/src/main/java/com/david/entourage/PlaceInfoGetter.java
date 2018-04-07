@@ -8,6 +8,7 @@ import com.google.android.gms.location.places.PlaceBufferResponse;
 import com.google.android.gms.location.places.PlacePhotoMetadataBuffer;
 import com.google.android.gms.location.places.PlacePhotoMetadataResponse;
 import com.google.android.gms.location.places.PlacePhotoResponse;
+import com.google.android.gms.location.places.Places;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
@@ -35,6 +36,7 @@ public class PlaceInfoGetter {
     }
 
     public void getPlaces(List<String> placesId){
+        Places.GeoDataApi.getPlaceById().
         geoDataClient.getPlaceById(placesId.toArray(new String[placesId.size()]))
                 .addOnCompleteListener(new OnCompleteListener<PlaceBufferResponse>() {
                     @Override
@@ -70,5 +72,6 @@ public class PlaceInfoGetter {
                         placePhotoMetadataBuffer.release();
                     }
                 });
+        Places.GeoDataApi.getPlacePhotos().
     }
 }
