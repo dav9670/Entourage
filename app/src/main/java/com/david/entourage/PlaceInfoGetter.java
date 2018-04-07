@@ -36,7 +36,6 @@ public class PlaceInfoGetter {
     }
 
     public void getPlaces(List<String> placesId){
-        Places.GeoDataApi.getPlaceById().
         geoDataClient.getPlaceById(placesId.toArray(new String[placesId.size()]))
                 .addOnCompleteListener(new OnCompleteListener<PlaceBufferResponse>() {
                     @Override
