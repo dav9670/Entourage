@@ -71,6 +71,5 @@ public class PlaceInfoGetter {
                         placePhotoMetadataBuffer.release();
                     }
                 });
-        Places.GeoDataApi.getPlacePhotos().
     }
 }
