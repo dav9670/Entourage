@@ -8,6 +8,7 @@ import android.text.TextUtils;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
+import com.google.android.gms.common.api.GoogleApiClient;
 
 import static com.david.entourage.Application.AppConfig.TAG;
 
@@ -16,6 +17,7 @@ public class AppController extends Application {
     private RequestQueue mRequestQueue;
     private static AppController sInstance;
     private static Location lastKnownLocation;
+    private static GoogleApiClient googleApiClient;
 
     @Override
     public void onCreate(){
@@ -60,5 +62,13 @@ public class AppController extends Application {
 
     public static void setLastKnownLocation(Location lastKnownLocation) {
         AppController.lastKnownLocation = lastKnownLocation;
+    }
+
+    public static GoogleApiClient getGoogleApiClient() {
+        return googleApiClient;
+    }
+
+    public static void setGoogleApiClient(GoogleApiClient googleApiClient) {
+        AppController.googleApiClient = googleApiClient;
     }
 }

@@ -4,12 +4,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.MotionEvent;
+import android.widget.BaseAdapter;
 
 import com.david.entourage.Application.AppConfig;
 import com.david.entourage.PlaceAdapter;
 import com.david.entourage.PlaceInfo;
-import com.david.entourage.PlaceInfoGetter;
+import com.david.entourage.Tasks.PlaceInfoGetter;
 import com.david.entourage.R;
 import com.david.entourage.Utils;
 import com.google.android.gms.location.places.Places;
@@ -47,7 +47,7 @@ public class PlaceListActivity extends AppCompatActivity {
 
         placeIds = getIntent().getStringArrayListExtra("placesId");
 
-        PlaceInfoGetter placeInfoGetter = new PlaceInfoGetter(nearbyPlaces, Places.getGeoDataClient(getApplicationContext(),null), placeAdapter, (int) Utils.convertDpToPixel(AppConfig.IMAGEVIEW_WIDTH,getApplicationContext()),(int)Utils.convertDpToPixel(AppConfig.IMAGEVIEW_HEIGHT,getApplicationContext()));
-        placeInfoGetter.getPlaces(placeIds);
+        PlaceInfoGetter placeInfoGetter = new PlaceInfoGetter(nearbyPlaces,placeAdapter);
+        placeInfoGetter.execute(placeIds.toArray(new String[placeIds.size()]));
     }
 }

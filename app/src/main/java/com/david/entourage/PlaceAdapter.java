@@ -49,7 +49,7 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
     }
 
 
-    class PlaceViewHolder extends RecyclerView.ViewHolder
+    public class PlaceViewHolder extends RecyclerView.ViewHolder
     implements View.OnClickListener{
 
         private final ImageView imageView;

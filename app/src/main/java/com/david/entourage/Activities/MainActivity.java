@@ -14,6 +14,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.SeekBar;
@@ -31,7 +32,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.places.GeoDataClient;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -69,13 +69,11 @@ public class MainActivity extends AppCompatActivity
     private ArrayAdapter<CharSequence> placeTypes_Adapter;
     private MapFragment fragMap;
     private GoogleMap mGoogleMap;
-    private GoogleApiClient mGoogleApiClient;
     private FusedLocationProviderClient mFusedLocationClient;
-    private GeoDataClient mGeoDataClient;
 
     private int radius;
     private boolean mLocationPermissionGranted;
-    private Circle mCircle;
+    private Circle radiusCircle;
     private List<String> placeTypes;
     private ArrayList<Marker> markerList;
     private ArrayList<HashMap<String,String>> nearbyPlaces;
@@ -100,22 +98,22 @@ public class MainActivity extends AppCompatActivity
         placeTypes_Adapter = ArrayAdapter.createFromResource(this, R.array.placeTypes_UF, android.R.layout.simple_spinner_item);
         placeTypes_Adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner_place.setAdapter(placeTypes_Adapter);
+        spinner_place.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                resetNearbyPlaces();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+                resetNearbyPlaces();
+            }
+        });
 
         seekBar_radius.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                if(markerList != null){
-                    for(int x=markerList.size()-1; x>=0; x--){
-                        markerList.get(x).remove();
-                        markerList.remove(x);
-                    }
-                }
-                if(nearbyPlaces.size() > 0){
-                    nearbyPlaces.clear();
-                }
-                if(button_list.getVisibility() == View.VISIBLE){
-                    button_list.setVisibility(View.INVISIBLE);
-                }
+                resetNearbyPlaces();
                 radius = (seekBar.getProgress() + 1) * 1000;
                 textView_radius.setText(radius/1000 + " " + getString(R.string.Radius));
                 updateCamera();
@@ -139,15 +137,7 @@ public class MainActivity extends AppCompatActivity
         button_search.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(markerList != null){
-                    for(int i=markerList.size()-1; i>=0; i--){
-                        markerList.get(i).remove();
-                        markerList.remove(i);
-                    }
-                }
-                if(nearbyPlaces.size() > 0){
-                    nearbyPlaces.clear();
-                }
+                resetNearbyPlaces();
                 getNearbyPlaces(AppController.getLastKnownLocation().getLatitude(), AppController.getLastKnownLocation().getLongitude(),radius,placeTypes.get((int) spinner_place.getSelectedItemId()));
             }
         });
@@ -174,7 +164,6 @@ public class MainActivity extends AppCompatActivity
 
         buildGoogleApiClient();
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        mGeoDataClient = Places.getGeoDataClient(this,null);
     }
 
     @Override
@@ -228,7 +217,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
+         AppController.setGoogleApiClient(new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
                     @SuppressLint("MissingPermission")
                     @Override
@@ -249,7 +238,7 @@ public class MainActivity extends AppCompatActivity
                                                         .strokeColor(Color.GREEN)
                                                         .fillColor(Color.argb(128, 255, 0, 0));
 
-                                                mCircle = mGoogleMap.addCircle(circleOptions);
+                                                radiusCircle = mGoogleMap.addCircle(circleOptions);
                                                 updateCamera();
                                             }
                                         }
@@ -278,8 +267,9 @@ public class MainActivity extends AppCompatActivity
                     }
                 })
                 .addApi(LocationServices.API)
-                .build();
-        mGoogleApiClient.connect();
+                 .addApi(Places.GEO_DATA_API)
+                .build());
+         AppController.getGoogleApiClient().connect();
     }
 
     private void updateLocationUI() {
@@ -346,13 +336,13 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void updateCamera() {
-        if (mGoogleApiClient != null && mGoogleApiClient.isConnected() && mCircle != null){
-            mCircle.setRadius(radius);
+        if(AppController.getGoogleApiClient() != null && radiusCircle != null && AppController.getGoogleApiClient().isConnected()) {
+            radiusCircle.setRadius(radius);
             LatLng latLng = new LatLng(AppController.getLastKnownLocation().getLatitude(),AppController.getLastKnownLocation().getLongitude());
 
             CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(latLng)
-                    .zoom(getZoomLevel(mCircle)-(float)0.5)
+                    .zoom(getZoomLevel(radiusCircle)-(float)0.5)
                     .build();
             mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         }
@@ -371,5 +361,18 @@ public class MainActivity extends AppCompatActivity
     public void debugMessage(String message) {
         Toast toast = Toast.makeText(this, message, Toast.LENGTH_LONG);
         toast.show();
+    }
+
+    public void resetNearbyPlaces(){
+        for(int x=markerList.size()-1; x>=0; x--){
+            markerList.get(x).remove();
+            markerList.remove(x);
+        }
+        if(nearbyPlaces.size() > 0){
+            nearbyPlaces.clear();
+        }
+        if(button_list.getVisibility() == View.VISIBLE){
+            button_list.setVisibility(View.INVISIBLE);
+        }
     }
 }
