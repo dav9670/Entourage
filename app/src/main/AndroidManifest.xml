@@ -43,7 +43,10 @@
         <activity
             android:name=".Activities.PlaceListActivity"
             android:parentActivityName=".Activities.MainActivity" />
-        <activity android:name=".Activities.PlaceInfoActivity"></activity>
+        <activity
+            android:name=".Activities.PlaceInfoActivity"
+            android:parentActivityName=".Activities.PlaceListActivity"
+            android:label=""/>
     </application>
 
 </manifest>

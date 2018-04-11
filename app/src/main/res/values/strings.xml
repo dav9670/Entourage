@@ -8,6 +8,7 @@
     <string name="address">Address</string>
     <string name="phone_number">Phone number</string>
     <string name="sort_by">Sort by :</string>
+    <string name="place_info">Place info</string>
     <string-array name="placeTypes">
         <item>accounting</item>
         <item>airport</item>

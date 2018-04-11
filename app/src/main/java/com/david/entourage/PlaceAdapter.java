@@ -1,5 +1,6 @@
 package com.david.entourage;
 
+import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -8,10 +9,13 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.david.entourage.Activities.PlaceInfoActivity;
 import com.david.entourage.Application.AppController;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+
+
 
 /**
  * Created by David on 3/21/2018.
@@ -69,6 +73,8 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
             textView_address = itemView.findViewById(R.id.textView_address);
             textView_tel = itemView.findViewById(R.id.textView_tel);
             textView_distance = itemView.findViewById(R.id.textView_distance);
+
+            itemView.setOnClickListener(this);
         }
 
         public void setPlaceInfo(PlaceInfo placeInfo){
@@ -88,7 +94,10 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
 
         @Override
         public void onClick(View view) {
-
+            Intent intent = new Intent();
+            intent.setClass(AppController.getContext(), PlaceInfoActivity.class);
+            intent.putExtra("placeInfo",placeInfo);
+            AppController.getContext().startActivity(intent);
         }
     }
 }
