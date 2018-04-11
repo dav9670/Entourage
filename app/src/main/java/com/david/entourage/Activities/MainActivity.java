@@ -54,7 +54,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import static com.david.entourage.Application.AppConfig.*;
+import static com.david.entourage.Application.AppConfig.CONNECTION_FAILURE_RESOLUTION_REQUEST;
+import static com.david.entourage.Application.AppConfig.GOOGLE_BROWSER_API_KEY;
+import static com.david.entourage.Application.AppConfig.LOCATION_PERMISSION;
+import static com.david.entourage.Application.AppConfig.TAG;
 
 public class MainActivity extends AppCompatActivity
     implements OnMapReadyCallback,
