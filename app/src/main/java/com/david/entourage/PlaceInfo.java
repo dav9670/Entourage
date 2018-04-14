@@ -21,13 +21,13 @@ import java.util.Observable;
  */
 
 public class PlaceInfo extends Observable implements Parcelable{
-    private CharSequence adress;
-    private CharSequence attributions;
+    private String address;
+    private String attributions;
     private String id;
     private LatLng latLng;
     private Locale locale;
-    private CharSequence name;
-    private CharSequence phoneNumber;
+    private String name;
+    private String phoneNumber;
     private int priceLevel;
     private float rating;
     private LatLngBounds latLngBounds;
@@ -36,13 +36,13 @@ public class PlaceInfo extends Observable implements Parcelable{
     private ArrayList<Bitmap> photos;
 
     public PlaceInfo(Place place) {
-        this.adress = place.getAddress();
-        this.attributions = place.getAttributions();
+        this.address = place.getAddress().toString();
+        this.attributions = place.getAttributions() != null ? place.getAttributions().toString() : null;
         this.id = place.getId();
         this.latLng = place.getLatLng();
         this.locale = place.getLocale();
-        this.name = place.getName();
-        this.phoneNumber = place.getPhoneNumber();
+        this.name = place.getName().toString();
+        this.phoneNumber = place.getPhoneNumber().toString();
         this.priceLevel = place.getPriceLevel();
         this.rating = place.getRating();
         this.latLngBounds = place.getViewport();
@@ -54,9 +54,29 @@ public class PlaceInfo extends Observable implements Parcelable{
         notifyObservers();
     }
 
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(address);
+        parcel.writeString(attributions);
+        parcel.writeString(id);
+        parcel.writeParcelable(latLng, i);
+        parcel.writeString(name);
+        parcel.writeString(phoneNumber);
+        parcel.writeInt(priceLevel);
+        parcel.writeFloat(rating);
+        parcel.writeParcelable(latLngBounds, i);
+        parcel.writeParcelable(uri, i);
+        parcel.writeTypedList(photos);
+    }
+
+
     protected PlaceInfo(Parcel in) {
+        address = in.readString();
+        attributions = in.readString();
         id = in.readString();
         latLng = in.readParcelable(LatLng.class.getClassLoader());
+        name = in.readString();
+        phoneNumber = in.readString();
         priceLevel = in.readInt();
         rating = in.readFloat();
         latLngBounds = in.readParcelable(LatLngBounds.class.getClassLoader());
@@ -65,14 +85,8 @@ public class PlaceInfo extends Observable implements Parcelable{
     }
 
     @Override
-    public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(id);
-        parcel.writeParcelable(latLng, i);
-        parcel.writeInt(priceLevel);
-        parcel.writeFloat(rating);
-        parcel.writeParcelable(latLngBounds, i);
-        parcel.writeParcelable(uri, i);
-        parcel.writeTypedList(photos);
+    public int describeContents() {
+        return 0;
     }
 
     public static final Creator<PlaceInfo> CREATOR = new Creator<PlaceInfo>() {
@@ -87,16 +101,11 @@ public class PlaceInfo extends Observable implements Parcelable{
         }
     };
 
-    @Override
-    public int describeContents() {
-        return 0;
+    public String getAddress() {
+        return address;
     }
 
-    public CharSequence getAdress() {
-        return adress;
-    }
-
-    public CharSequence getAttributions() {
+    public String getAttributions() {
         return attributions;
     }
 
@@ -112,11 +121,11 @@ public class PlaceInfo extends Observable implements Parcelable{
         return locale;
     }
 
-    public CharSequence getName() {
+    public String getName() {
         return name;
     }
 
-    public CharSequence getPhoneNumber() {
+    public String getPhoneNumber() {
         return phoneNumber;
     }
 
@@ -161,6 +170,13 @@ public class PlaceInfo extends Observable implements Parcelable{
         @Override
         public int compare(PlaceInfo placeInfo, PlaceInfo t1) {
             return placeInfo.getName().toString().compareTo(t1.getName().toString());
+        }
+    };
+
+    public static Comparator<PlaceInfo> PlaceInfoCompRating = new Comparator<PlaceInfo>() {
+        @Override
+        public int compare(PlaceInfo placeInfo, PlaceInfo t1) {
+            return (int)(placeInfo.getRating() - t1.getRating());
         }
     };
 }

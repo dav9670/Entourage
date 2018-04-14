@@ -32,7 +32,7 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
     @Override
     public PlaceViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-        View view = inflater.inflate(R.layout.list_layout, parent, false);
+        View view = inflater.inflate(R.layout.placeadapter_layout, parent, false);
         return new PlaceViewHolder(view);
     }
 
@@ -85,11 +85,11 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
         public void bind(){
             imageView.setImageBitmap(placeInfo.getPhotos().size() > 0 ? placeInfo.getPhotos().get(0) : BitmapFactory.decodeResource(AppController.getContext().getResources(),R.drawable.ic_map_marker));
             textView_name.setText(placeInfo.getName());
-            textView_address.setText(placeInfo.getAdress());
+            textView_address.setText(placeInfo.getAddress());
             textView_tel.setText(placeInfo.getPhoneNumber());
             DecimalFormat df = new DecimalFormat();
             df.setMaximumFractionDigits(2);
-            textView_distance.setText(df.format(placeInfo.getDistance()/1000) + "km");
+            textView_distance.setText(df.format(placeInfo.getDistance()/1000) + " km");
         }
 
         @Override

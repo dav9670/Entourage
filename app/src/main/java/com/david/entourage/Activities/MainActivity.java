@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity
         textView_radius = findViewById(R.id.textView_radius);
         seekBar_radius = findViewById(R.id.seekBar_radius);
         button_search = findViewById(R.id.button_search);
-        button_list = findViewById(R.id.button_list);
+        button_list = findViewById(R.id.button_sort);
         fragMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.fragMap));
         fragMap.getMapAsync(this);
 
