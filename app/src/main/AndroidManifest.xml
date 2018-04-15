@@ -41,7 +41,8 @@
         </activity>
         <activity
             android:name=".Activities.PlaceListActivity"
-            android:label=""/>
+            android:label=""
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
         <activity
             android:name=".Activities.PlaceInfoActivity"
             android:label=""/>

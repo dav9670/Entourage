@@ -2,11 +2,17 @@ package com.david.entourage.Activities;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.widget.TextView;
 
+import com.david.entourage.Application.AppConfig;
+import com.david.entourage.Application.AppController;
+import com.david.entourage.PhotoAdapter;
 import com.david.entourage.PlaceInfo;
 import com.david.entourage.R;
+import com.david.entourage.Tasks.PlacePhotoGetter;
+import com.david.entourage.Utils;
 
 import java.text.DecimalFormat;
 
@@ -44,6 +50,10 @@ public class PlaceInfoActivity extends AppCompatActivity {
         textView_uri.setText(placeInfo.getUri() != null ? placeInfo.getUri().toString() : "No website provided");
 
         recyclerView = findViewById(R.id.recyclerView_photos);
-
+        recyclerView.setLayoutManager(new LinearLayoutManager(PlaceInfoActivity.this,LinearLayoutManager.HORIZONTAL,false));
+        PhotoAdapter photoAdapter = new PhotoAdapter(placeInfo.getPhotos());
+        recyclerView.setAdapter(photoAdapter);
+        PlacePhotoGetter placePhotoGetter = new PlacePhotoGetter(placeInfo,photoAdapter,(int) Utils.convertDpToPixel(AppConfig.IMAGEVIEW_WIDTH, AppController.getContext()),(int)Utils.convertDpToPixel(AppConfig.IMAGEVIEW_HEIGHT,AppController.getContext()),1 ,10);
+        placePhotoGetter.execute();
     }
 }
