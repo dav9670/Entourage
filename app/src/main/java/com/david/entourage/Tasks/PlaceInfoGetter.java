@@ -25,6 +25,7 @@ import com.google.android.gms.tasks.Task;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -35,10 +36,12 @@ public class PlaceInfoGetter extends AsyncTask<String,Void,PlaceBuffer>{
 
     private ArrayList<PlaceInfo> nearbyPlaces;
     private RecyclerView.Adapter adapter;
+    private Comparator comparator;
 
-    public PlaceInfoGetter(ArrayList<PlaceInfo> nearbyPlaces, RecyclerView.Adapter adapter) {
+    public PlaceInfoGetter(ArrayList<PlaceInfo> nearbyPlaces, RecyclerView.Adapter adapter, Comparator comparator) {
         this.nearbyPlaces = nearbyPlaces;
         this.adapter = adapter;
+        this.comparator = comparator;
     }
 
     @Override
@@ -60,7 +63,7 @@ public class PlaceInfoGetter extends AsyncTask<String,Void,PlaceBuffer>{
             placePhotoGetter.execute();
         }
         places.release();
-        Collections.sort(nearbyPlaces,PlaceInfo.PlaceInfoCompDist);
+        Collections.sort(nearbyPlaces,comparator);
         adapter.notifyDataSetChanged();
     }
 }

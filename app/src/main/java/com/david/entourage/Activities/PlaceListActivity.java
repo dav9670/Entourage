@@ -18,8 +18,10 @@ import com.david.entourage.R;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 
 //TODO Choose PlaceType from this activity
+//TODO Add loading icon for photos
 
 public class PlaceListActivity extends AppCompatActivity {
 
@@ -32,6 +34,7 @@ public class PlaceListActivity extends AppCompatActivity {
     private ArrayList<String> placeIds;
     private ArrayList<PlaceInfo> nearbyPlaces;
 
+    private Comparator comparator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +52,8 @@ public class PlaceListActivity extends AppCompatActivity {
 
         setSupportActionBar(toolbar);
 
+        comparator = PlaceInfo.PlaceInfoCompDist;
+
         button_sort.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -60,20 +65,20 @@ public class PlaceListActivity extends AppCompatActivity {
                     public boolean onMenuItemClick(MenuItem menuItem) {
                         switch(menuItem.getTitle().toString()) {
                             case "Distance":
-                                Collections.sort(nearbyPlaces, PlaceInfo.PlaceInfoCompDist);
-                                placeAdapter.notifyDataSetChanged();
-                                return true;
+                                comparator = PlaceInfo.PlaceInfoCompDist;
+                                break;
                             case "Rating":
-                                Collections.sort(nearbyPlaces, PlaceInfo.PlaceInfoCompRating);
-                                placeAdapter.notifyDataSetChanged();
-                                return true;
+                                comparator = PlaceInfo.PlaceInfoCompRating;
+                                break;
                             case "Name":
-                                Collections.sort(nearbyPlaces, PlaceInfo.PlaceInfoCompName);
-                                placeAdapter.notifyDataSetChanged();
-                                return true;
+                                comparator = PlaceInfo.PlaceInfoCompName;
+                                break;
                             default:
                                 return false;
                         }
+                        Collections.sort(nearbyPlaces, comparator);
+                        placeAdapter.notifyDataSetChanged();
+                        return true;
                     }
                 });
                 popup.show();
@@ -93,7 +98,7 @@ public class PlaceListActivity extends AppCompatActivity {
         String placeType = getIntent().getStringExtra("placeType");
         getSupportActionBar().setTitle(placeType);
 
-        PlaceInfoGetter placeInfoGetter = new PlaceInfoGetter(nearbyPlaces,placeAdapter);
+        PlaceInfoGetter placeInfoGetter = new PlaceInfoGetter(nearbyPlaces,placeAdapter,comparator);
         placeInfoGetter.execute(placeIds.toArray(new String[placeIds.size()]));
     }
 }
