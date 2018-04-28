@@ -38,4 +38,5 @@ public final class AppConfig {
     //Dimensions of list_layout imageView
     public static final int IMAGEVIEW_WIDTH = 120;
     public static final int IMAGEVIEW_HEIGHT = 90;
+
 }

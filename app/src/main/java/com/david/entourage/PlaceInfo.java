@@ -176,7 +176,8 @@ public class PlaceInfo extends Observable implements Parcelable{
     public static Comparator<PlaceInfo> PlaceInfoCompRating = new Comparator<PlaceInfo>() {
         @Override
         public int compare(PlaceInfo placeInfo, PlaceInfo t1) {
-            return (int)(placeInfo.getRating() - t1.getRating());
+            float change = t1.getRating() - placeInfo.getRating();
+            return change > 0 ?  1 : change < 0 ? -1 : 0;
         }
     };
 }

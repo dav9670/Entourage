@@ -1,5 +1,6 @@
 package com.david.entourage.Activities;
 
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,11 +17,16 @@ import com.david.entourage.Utils;
 
 import java.text.DecimalFormat;
 
+//TODO Add google maps link
+//TODO Add rating, LatLng
+//TODO Add more than 10 photos
+//TODO Disable photo recyclerview if no photos
+
 public class PlaceInfoActivity extends AppCompatActivity {
 
     private PlaceInfo placeInfo;
 
-    private TextView textView_name;
+    //private TextView textView_name;
     private TextView textView_address;
     private TextView textView_distance;
     private TextView textView_tel;
@@ -33,7 +39,7 @@ public class PlaceInfoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_placeinfo);
 
-        textView_name = findViewById(R.id.textView_name);
+        //textView_name = findViewById(R.id.textView_name);
         textView_address = findViewById(R.id.textView_address);
         textView_distance = findViewById(R.id.textView_distance);
         textView_tel = findViewById(R.id.textView_tel);
@@ -41,7 +47,9 @@ public class PlaceInfoActivity extends AppCompatActivity {
 
         placeInfo = getIntent().getParcelableExtra("placeInfo");
 
-        textView_name.setText(placeInfo.getName());
+        getSupportActionBar().setTitle(placeInfo.getName());
+
+        //textView_name.setText(placeInfo.getName());
         textView_address.setText(placeInfo.getAddress());
         DecimalFormat df = new DecimalFormat();
         df.setMaximumFractionDigits(2);

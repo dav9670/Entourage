@@ -9,6 +9,9 @@
     <string name="phone_number">Phone number</string>
     <string name="sort_by">Sort by :</string>
     <string name="place_info">Place info</string>
+    <string name="uri">(Uri)</string>
+    <string name="position"><u>Position</u></string>
+    <string name="references"><u>References</u></string>
     <string-array name="placeTypes">
         <item>accounting</item>
         <item>airport</item>

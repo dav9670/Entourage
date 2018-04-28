@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.david.entourage.Activities.PlaceInfoActivity;
@@ -61,6 +62,7 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
         private final TextView textView_address;
         private final TextView textView_tel;
         private final TextView textView_distance;
+        private final RatingBar ratingBar;
 
         private PlaceInfo placeInfo;
 
@@ -73,6 +75,7 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
             textView_address = itemView.findViewById(R.id.textView_address);
             textView_tel = itemView.findViewById(R.id.textView_tel);
             textView_distance = itemView.findViewById(R.id.textView_distance);
+            ratingBar = itemView.findViewById(R.id.ratingBar);
 
             itemView.setOnClickListener(this);
         }
@@ -90,6 +93,7 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
             DecimalFormat df = new DecimalFormat();
             df.setMaximumFractionDigits(2);
             textView_distance.setText(df.format(placeInfo.getDistance()/1000) + " km");
+            ratingBar.setRating(placeInfo.getRating());
         }
 
         @Override

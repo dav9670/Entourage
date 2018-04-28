@@ -28,6 +28,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.david.entourage.Application.AppController;
 import com.david.entourage.DataParser;
 import com.david.entourage.R;
+import com.david.entourage.Utils;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -58,6 +59,9 @@ import static com.david.entourage.Application.AppConfig.CONNECTION_FAILURE_RESOL
 import static com.david.entourage.Application.AppConfig.GOOGLE_BROWSER_API_KEY;
 import static com.david.entourage.Application.AppConfig.LOCATION_PERMISSION;
 import static com.david.entourage.Application.AppConfig.TAG;
+
+//TODO Add more than 20 establishments
+//TODO Open PlaceInfoActivity from marker
 
 public class MainActivity extends AppCompatActivity
     implements OnMapReadyCallback,
@@ -155,11 +159,12 @@ public class MainActivity extends AppCompatActivity
                         placesId.add(nearbyPlaces.get(i).get("place_id"));
                     }
                     Intent intent = new Intent(MainActivity.this, PlaceListActivity.class)
-                            .putStringArrayListExtra("placesId",placesId);
+                            .putStringArrayListExtra("placesId",placesId)
+                            .putExtra("placeType", spinner_place.getSelectedItem().toString());
                     startActivity(intent);
                 }
                 else{
-                    debugMessage("No establishment to show");
+                    Utils.debugMessage("No establishment to show");
                 }
             }
         });
@@ -320,7 +325,7 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onErrorResponse(VolleyError error){
                         Log.e(TAG,"onErrorResponse: Error=" + error.getMessage());
-                        debugMessage("Request failed, please retry");
+                        Utils.debugMessage("Request failed, please retry");
                     }
                 }
         );
@@ -359,11 +364,6 @@ public class MainActivity extends AppCompatActivity
             zoomLevel =(float) (16 - Math.log(scale) / Math.log(2));
         }
         return zoomLevel;
-    }
-
-    public void debugMessage(String message) {
-        Toast toast = Toast.makeText(this, message, Toast.LENGTH_LONG);
-        toast.show();
     }
 
     public void resetNearbyPlaces(){

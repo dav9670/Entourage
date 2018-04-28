@@ -42,11 +42,13 @@ public class PlacePhotoGetter extends AsyncTask<Void, Void, PlacePhotoMetadataBu
     @Override
     protected void onPostExecute(PlacePhotoMetadataBuffer placePhotoMetadataBuffer) {
         super.onPostExecute(placePhotoMetadataBuffer);
-        for(int i=startPhoto; i<placePhotoMetadataBuffer.getCount() && i<lastPhoto; i++){
-            PlacePhotoSetter placePhotoSetter = new PlacePhotoSetter();
-            placePhotoSetter.execute(placePhotoMetadataBuffer.get(i).freeze());
+        if(placePhotoMetadataBuffer != null) {
+            for(int i=startPhoto; i<placePhotoMetadataBuffer.getCount() && i<lastPhoto; i++){
+                PlacePhotoSetter placePhotoSetter = new PlacePhotoSetter();
+                placePhotoSetter.execute(placePhotoMetadataBuffer.get(i).freeze());
+            }
+            placePhotoMetadataBuffer.release();
         }
-        placePhotoMetadataBuffer.release();
     }
 
     private class PlacePhotoSetter extends AsyncTask<PlacePhotoMetadata,Void,Bitmap>{

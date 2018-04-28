@@ -23,6 +23,8 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -58,6 +60,7 @@ public class PlaceInfoGetter extends AsyncTask<String,Void,PlaceBuffer>{
             placePhotoGetter.execute();
         }
         places.release();
+        Collections.sort(nearbyPlaces,PlaceInfo.PlaceInfoCompDist);
         adapter.notifyDataSetChanged();
     }
 }
