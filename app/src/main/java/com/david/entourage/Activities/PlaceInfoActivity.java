@@ -29,7 +29,6 @@ public class PlaceInfoActivity extends AppCompatActivity {
 
     private PlaceInfo placeInfo;
 
-    //private TextView textView_name;
     private TextView textView_address;
     private TextView textView_distance;
     private TextView textView_googleMaps;
@@ -43,7 +42,6 @@ public class PlaceInfoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_placeinfo);
 
-        //textView_name = findViewById(R.id.textView_name);
         textView_address = findViewById(R.id.textView_address);
         textView_distance = findViewById(R.id.textView_distance);
         textView_googleMaps = findViewById(R.id.textView_googleMaps);
@@ -66,7 +64,7 @@ public class PlaceInfoActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(PlaceInfoActivity.this,LinearLayoutManager.HORIZONTAL,false));
         PhotoAdapter photoAdapter = new PhotoAdapter(placeInfo.getPhotos());
         recyclerView.setAdapter(photoAdapter);
-        PlacePhotoGetter placePhotoGetter = new PlacePhotoGetter(placeInfo,photoAdapter,(int) Utils.convertDpToPixel(AppConfig.IMAGEVIEW_WIDTH, AppController.getContext()),(int)Utils.convertDpToPixel(AppConfig.IMAGEVIEW_HEIGHT,AppController.getContext()),1 ,10);
+        PlacePhotoGetter placePhotoGetter = new PlacePhotoGetter(placeInfo,photoAdapter,(int) Utils.convertDpToPixel(AppConfig.IMAGEVIEW_WIDTH, AppController.getContext()),(int)Utils.convertDpToPixel(AppConfig.IMAGEVIEW_HEIGHT,AppController.getContext()),10);
         placePhotoGetter.execute();
 
         Uri.Builder builder = new Uri.Builder();

@@ -17,22 +17,16 @@ public class PlacePhotoGetter extends AsyncTask<Void, Void, PlacePhotoMetadataBu
     private RecyclerView.Adapter adapter;
     private int photoWidth;
     private int photoHeight;
-    private int startPhoto;
-    private int lastPhoto;
+    private int nbPhotos;
 
-    public PlacePhotoGetter(PlaceInfo placeInfo, RecyclerView.Adapter adapter, int photoWidth, int photoHeight, int startPhoto, int lastPhoto) {
+    public PlacePhotoGetter(PlaceInfo placeInfo, RecyclerView.Adapter adapter, int photoWidth, int photoHeight, int nbPhotos) {
         this.placeInfo = placeInfo;
         this.adapter = adapter;
         this.photoWidth = photoWidth;
         this.photoHeight = photoHeight;
-        this.startPhoto = startPhoto;
-        this.lastPhoto = lastPhoto;
+        this.nbPhotos = nbPhotos;
     }
 
-    @Override
-    protected PlacePhotoMetadataBuffer doInBackground(Void... voids) {
-        return Places.GeoDataApi.getPlacePhotos(AppController.getGoogleApiClient(),placeInfo.getId()).await().getPhotoMetadata();
-    }
 
     @Override
     protected void onPreExecute() {
@@ -40,10 +34,19 @@ public class PlacePhotoGetter extends AsyncTask<Void, Void, PlacePhotoMetadataBu
     }
 
     @Override
+    protected PlacePhotoMetadataBuffer doInBackground(Void... voids) {
+        if(placeInfo.getPhotos().size() < nbPhotos){
+            return Places.GeoDataApi.getPlacePhotos(AppController.getGoogleApiClient(),placeInfo.getId()).await().getPhotoMetadata();
+        }
+        else
+            return null;
+    }
+
+    @Override
     protected void onPostExecute(PlacePhotoMetadataBuffer placePhotoMetadataBuffer) {
         super.onPostExecute(placePhotoMetadataBuffer);
         if(placePhotoMetadataBuffer != null) {
-            for(int i=startPhoto; i<placePhotoMetadataBuffer.getCount() && i<lastPhoto; i++){
+            for(int i = placeInfo.getPhotos().size(); i<placePhotoMetadataBuffer.getCount() && i< nbPhotos; i++){
                 PlacePhotoSetter placePhotoSetter = new PlacePhotoSetter();
                 placePhotoSetter.execute(placePhotoMetadataBuffer.get(i).freeze());
             }

@@ -12,20 +12,31 @@
         android:layout_height="56dp"
         android:background="?attr/colorPrimary"
         android:elevation="4dp"
-        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar"
         app:layout_constraintBottom_toTopOf="@+id/recyclerView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
-        <Button
-            android:id="@+id/button_sort"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:background="@drawable/ic_list"
-            tools:layout_editor_absoluteX="348dp"
-            tools:layout_editor_absoluteY="75dp" />
+        <android.support.constraint.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <Button
+                android:id="@+id/button_sort"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/ic_list"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </android.support.constraint.ConstraintLayout>
+
+
     </android.support.v7.widget.Toolbar>
 
     <android.support.v7.widget.RecyclerView

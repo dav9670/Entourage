@@ -59,7 +59,7 @@ public class PlaceInfoGetter extends AsyncTask<String,Void,PlaceBuffer>{
         super.onPostExecute(places);
         for(int i=0; i<places.getCount(); i++){
             nearbyPlaces.add(new PlaceInfo(places.get(i)));
-            PlacePhotoGetter placePhotoGetter = new PlacePhotoGetter(nearbyPlaces.get(nearbyPlaces.size()-1),adapter,(int)Utils.convertDpToPixel(AppConfig.IMAGEVIEW_WIDTH,AppController.getContext()),(int)Utils.convertDpToPixel(AppConfig.IMAGEVIEW_HEIGHT,AppController.getContext()),0 ,1);
+            PlacePhotoGetter placePhotoGetter = new PlacePhotoGetter(nearbyPlaces.get(nearbyPlaces.size()-1),adapter,(int)Utils.convertDpToPixel(AppConfig.IMAGEVIEW_WIDTH,AppController.getContext()),(int)Utils.convertDpToPixel(AppConfig.IMAGEVIEW_HEIGHT,AppController.getContext()) ,1);
             placePhotoGetter.execute();
         }
         places.release();

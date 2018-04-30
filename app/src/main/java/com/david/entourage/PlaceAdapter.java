@@ -99,9 +99,9 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
         @Override
         public void onClick(View view) {
             Intent intent = new Intent();
-            intent.setClass(AppController.getContext(), PlaceInfoActivity.class);
+            intent.setClass(view.getContext(), PlaceInfoActivity.class);
             intent.putExtra("placeInfo",placeInfo);
-            AppController.getContext().startActivity(intent);
+            view.getContext().startActivity(intent);
         }
     }
 }

@@ -145,7 +145,13 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 resetNearbyPlaces();
-                getNearbyPlaces(AppController.getLastKnownLocation().getLatitude(), AppController.getLastKnownLocation().getLongitude(),radius,placeTypes.get((int) spinner_place.getSelectedItemId()));
+                if(AppController.getLastKnownLocation() != null){
+                    getNearbyPlaces(AppController.getLastKnownLocation().getLatitude(), AppController.getLastKnownLocation().getLongitude(),radius,placeTypes.get((int) spinner_place.getSelectedItemId()));
+                }
+                else{
+                    getLastLocation();
+                }
+
             }
         });
 
@@ -231,27 +237,7 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onConnected(@Nullable Bundle bundle) {
                         getLocationPermission();
-                        mFusedLocationClient.getLastLocation()
-                                .addOnSuccessListener(MainActivity.this, new OnSuccessListener<Location>() {
-                                    @Override
-                                    public void onSuccess(Location location) {
-                                        // Got last known location. In some rare situations this can be null.
-                                        if (location != null) {
-                                            AppController.setLastKnownLocation(location);
-                                            if(mGoogleMap!= null){
-                                                CircleOptions circleOptions = new CircleOptions()
-                                                        .center(new LatLng(AppController.getLastKnownLocation().getLatitude(), AppController.getLastKnownLocation().getLongitude()))
-                                                        .radius(radius * 1000)
-                                                        .strokeWidth(10)
-                                                        .strokeColor(Color.GREEN)
-                                                        .fillColor(Color.argb(128, 255, 0, 0));
-
-                                                radiusCircle = mGoogleMap.addCircle(circleOptions);
-                                                updateCamera();
-                                            }
-                                        }
-                                    }
-                                });
+                        getLastLocation();
                     }
 
                     @Override
@@ -278,6 +264,32 @@ public class MainActivity extends AppCompatActivity
                  .addApi(Places.GEO_DATA_API)
                 .build());
          AppController.getGoogleApiClient().connect();
+    }
+
+    @SuppressLint("MissingPermission")
+    public void getLastLocation(){
+        getLocationPermission();
+        mFusedLocationClient.getLastLocation()
+                .addOnSuccessListener(MainActivity.this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        // Got last known location. In some rare situations this can be null.
+                        if (location != null) {
+                            AppController.setLastKnownLocation(location);
+                            if(mGoogleMap!= null){
+                                CircleOptions circleOptions = new CircleOptions()
+                                        .center(new LatLng(AppController.getLastKnownLocation().getLatitude(), AppController.getLastKnownLocation().getLongitude()))
+                                        .radius(radius * 1000)
+                                        .strokeWidth(10)
+                                        .strokeColor(Color.GREEN)
+                                        .fillColor(Color.argb(128, 255, 0, 0));
+
+                                radiusCircle = mGoogleMap.addCircle(circleOptions);
+                                updateCamera();
+                            }
+                        }
+                    }
+                });
     }
 
     private void updateLocationUI() {
@@ -318,6 +330,7 @@ public class MainActivity extends AppCompatActivity
                         }
                         else{
                             button_list.setVisibility(View.INVISIBLE);
+                            Utils.debugMessage("No places to show");
                         }
                     }
                 },
@@ -350,7 +363,7 @@ public class MainActivity extends AppCompatActivity
 
             CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(latLng)
-                    .zoom(getZoomLevel(radiusCircle)-(float)0.5)
+                    .zoom(getZoomLevel(radiusCircle)-(float)0.75)
                     .build();
             mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         }
@@ -361,7 +374,7 @@ public class MainActivity extends AppCompatActivity
         if (circle != null){
             double radius = circle.getRadius();
             double scale = radius / 500;
-            zoomLevel =(float) (16 - Math.log(scale) / Math.log(2));
+            zoomLevel = (float) (16 - Math.log(scale) / Math.log(2));
         }
         return zoomLevel;
     }
