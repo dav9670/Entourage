@@ -8,7 +8,10 @@ import android.text.TextUtils;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
+import com.david.entourage.PlaceInfo;
 import com.google.android.gms.common.api.GoogleApiClient;
+
+import java.util.List;
 
 import static com.david.entourage.Application.AppConfig.TAG;
 
@@ -18,6 +21,8 @@ public class AppController extends Application {
     private static AppController sInstance;
     private static Location lastKnownLocation;
     private static GoogleApiClient googleApiClient;
+    private static List<PlaceInfo> nearbyPlaces;
+
 
     @Override
     public void onCreate(){
@@ -70,5 +75,9 @@ public class AppController extends Application {
 
     public static void setGoogleApiClient(GoogleApiClient googleApiClient) {
         AppController.googleApiClient = googleApiClient;
+    }
+
+    public static List<PlaceInfo> getNearbyPlaces() {
+        return nearbyPlaces;
     }
 }
