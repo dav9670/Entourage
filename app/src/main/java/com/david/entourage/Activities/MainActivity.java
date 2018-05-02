@@ -19,7 +19,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -147,6 +146,7 @@ public class MainActivity extends AppCompatActivity
                 resetNearbyPlaces();
                 if(AppController.getLastKnownLocation() != null){
                     getNearbyPlaces(AppController.getLastKnownLocation().getLatitude(), AppController.getLastKnownLocation().getLongitude(),radius,placeTypes.get((int) spinner_place.getSelectedItemId()));
+                    AppController.getNearbyPlaces().clear();
                 }
                 else{
                     getLastLocation();

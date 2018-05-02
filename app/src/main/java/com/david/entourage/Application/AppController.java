@@ -11,6 +11,7 @@ import com.android.volley.toolbox.Volley;
 import com.david.entourage.PlaceInfo;
 import com.google.android.gms.common.api.GoogleApiClient;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.david.entourage.Application.AppConfig.TAG;
@@ -21,13 +22,14 @@ public class AppController extends Application {
     private static AppController sInstance;
     private static Location lastKnownLocation;
     private static GoogleApiClient googleApiClient;
-    private static List<PlaceInfo> nearbyPlaces;
+    private static ArrayList<PlaceInfo> nearbyPlaces;
 
 
     @Override
     public void onCreate(){
         super.onCreate();
         sInstance = this;
+        nearbyPlaces = new ArrayList<>();
     }
 
     public static synchronized AppController getInstance(){
@@ -77,7 +79,16 @@ public class AppController extends Application {
         AppController.googleApiClient = googleApiClient;
     }
 
-    public static List<PlaceInfo> getNearbyPlaces() {
+    public static ArrayList<PlaceInfo> getNearbyPlaces() {
         return nearbyPlaces;
+    }
+    
+    public static PlaceInfo getPlaceInfo(String placeId){
+        for (PlaceInfo placeInfo:
+                nearbyPlaces) {
+            if(placeInfo.getId().equals(placeId))
+                return placeInfo;
+        }
+        return null;
     }
 }

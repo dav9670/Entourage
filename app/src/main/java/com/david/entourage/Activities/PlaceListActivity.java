@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.PopupMenu;
 
 import com.david.entourage.Application.AppConfig;
+import com.david.entourage.Application.AppController;
 import com.david.entourage.PlaceAdapter;
 import com.david.entourage.PlaceInfo;
 import com.david.entourage.Tasks.PlaceInfoGetter;
@@ -41,7 +42,7 @@ public class PlaceListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_placelist);
 
-        nearbyPlaces = new ArrayList<>();
+        nearbyPlaces = AppController.getNearbyPlaces();
 
         recyclerView = findViewById(R.id.recyclerView);
         toolbar = findViewById(R.id.toolbar);
@@ -98,7 +99,20 @@ public class PlaceListActivity extends AppCompatActivity {
         String placeType = getIntent().getStringExtra("placeType");
         getSupportActionBar().setTitle(placeType);
 
-        PlaceInfoGetter placeInfoGetter = new PlaceInfoGetter(nearbyPlaces,placeAdapter,comparator);
-        placeInfoGetter.execute(placeIds.toArray(new String[placeIds.size()]));
+        for(int i=0; i<placeIds.size(); i++){
+            boolean found = false;
+            for(int x=0; x<nearbyPlaces.size() && !found; x++){
+                if(placeIds.get(i).equals(nearbyPlaces.get(x).getId())){
+                    placeIds.remove(i);
+                    i--;
+                    found = true;
+                }
+            }
+        }
+
+        if(placeIds.size() > 0) {
+            PlaceInfoGetter placeInfoGetter = new PlaceInfoGetter(nearbyPlaces,placeAdapter,comparator);
+            placeInfoGetter.execute(placeIds.toArray(new String[placeIds.size()]));
+        }
     }
 }

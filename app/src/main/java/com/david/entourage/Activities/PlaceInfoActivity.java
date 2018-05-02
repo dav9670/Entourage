@@ -49,35 +49,37 @@ public class PlaceInfoActivity extends AppCompatActivity {
         textView_uri = findViewById(R.id.textView_uri);
         recyclerView = findViewById(R.id.recyclerView_photos);
 
-        placeInfo = getIntent().getParcelableExtra("placeInfo");
+        placeInfo = AppController.getPlaceInfo(getIntent().getStringExtra("placeId"));
 
-        getSupportActionBar().setTitle(placeInfo.getName());
+        if(placeInfo != null){
+            getSupportActionBar().setTitle(placeInfo.getName());
 
-        textView_address.setText(placeInfo.getAddress());
-        DecimalFormat df = new DecimalFormat();
-        df.setMaximumFractionDigits(2);
-        textView_distance.setText(df.format(placeInfo.getDistance()/1000) + " km");
-        textView_tel.setText(placeInfo.getPhoneNumber());
-        textView_uri.setText(placeInfo.getUri() != null ? placeInfo.getUri().toString() : "No website provided");
+            textView_address.setText(placeInfo.getAddress());
+            DecimalFormat df = new DecimalFormat();
+            df.setMaximumFractionDigits(2);
+            textView_distance.setText(df.format(placeInfo.getDistance()/1000) + " km");
+            textView_tel.setText(placeInfo.getPhoneNumber());
+            textView_uri.setText(placeInfo.getUri() != null ? placeInfo.getUri().toString() : "No website provided");
 
 
-        recyclerView.setLayoutManager(new LinearLayoutManager(PlaceInfoActivity.this,LinearLayoutManager.HORIZONTAL,false));
-        PhotoAdapter photoAdapter = new PhotoAdapter(placeInfo.getPhotos());
-        recyclerView.setAdapter(photoAdapter);
-        PlacePhotoGetter placePhotoGetter = new PlacePhotoGetter(placeInfo,photoAdapter,(int) Utils.convertDpToPixel(AppConfig.IMAGEVIEW_WIDTH, AppController.getContext()),(int)Utils.convertDpToPixel(AppConfig.IMAGEVIEW_HEIGHT,AppController.getContext()),10);
-        placePhotoGetter.execute();
+            recyclerView.setLayoutManager(new LinearLayoutManager(PlaceInfoActivity.this,LinearLayoutManager.HORIZONTAL,false));
+            PhotoAdapter photoAdapter = new PhotoAdapter(placeInfo.getPhotos());
+            recyclerView.setAdapter(photoAdapter);
+            PlacePhotoGetter placePhotoGetter = new PlacePhotoGetter(placeInfo,photoAdapter,(int) Utils.convertDpToPixel(AppConfig.IMAGEVIEW_WIDTH, AppController.getContext()),(int)Utils.convertDpToPixel(AppConfig.IMAGEVIEW_HEIGHT,AppController.getContext()),10);
+            placePhotoGetter.execute();
 
-        Uri.Builder builder = new Uri.Builder();
-        builder.scheme("https")
-                .authority("www.google.com")
-                .appendPath("maps")
-                .appendEncodedPath("dir/")
-                .appendQueryParameter("api","1")
-                .appendQueryParameter("origin",AppController.getLastKnownLocation().getLatitude() + "," + AppController.getLastKnownLocation().getLongitude())
-                .appendQueryParameter("destination",Double.toString(placeInfo.getLatLng().latitude) + "," + Double.toString(placeInfo.getLatLng().longitude))
-                .appendQueryParameter("destination_place_id",placeInfo.getId());
-        Uri googleMapsUri = builder.build();
-        Pattern pattern = Pattern.compile("[a-zA-Z ]");
-        Linkify.addLinks(textView_googleMaps,pattern,googleMapsUri.toString());
+            Uri.Builder builder = new Uri.Builder();
+            builder.scheme("https")
+                    .authority("www.google.com")
+                    .appendPath("maps")
+                    .appendEncodedPath("dir/")
+                    .appendQueryParameter("api","1")
+                    .appendQueryParameter("origin",AppController.getLastKnownLocation().getLatitude() + "," + AppController.getLastKnownLocation().getLongitude())
+                    .appendQueryParameter("destination",Double.toString(placeInfo.getLatLng().latitude) + "," + Double.toString(placeInfo.getLatLng().longitude))
+                    .appendQueryParameter("destination_place_id",placeInfo.getId());
+            Uri googleMapsUri = builder.build();
+            Pattern pattern = Pattern.compile("[a-zA-Z ]");
+            Linkify.addLinks(textView_googleMaps,pattern,googleMapsUri.toString());
+        }
     }
 }

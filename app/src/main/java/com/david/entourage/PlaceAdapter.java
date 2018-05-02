@@ -100,7 +100,7 @@ public class PlaceAdapter extends RecyclerView.Adapter<PlaceAdapter.PlaceViewHol
         public void onClick(View view) {
             Intent intent = new Intent();
             intent.setClass(view.getContext(), PlaceInfoActivity.class);
-            intent.putExtra("placeInfo",placeInfo);
+            intent.putExtra("placeId",placeInfo.getId());
             view.getContext().startActivity(intent);
         }
     }
