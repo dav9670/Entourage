@@ -9,6 +9,7 @@ import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -61,6 +62,7 @@ import static com.david.entourage.Application.AppConfig.TAG;
 
 //TODO Add more than 20 establishments
 //TODO Open PlaceInfoActivity from marker
+// Vendredi 16h30
 
 public class MainActivity extends AppCompatActivity
     implements OnMapReadyCallback,
@@ -82,7 +84,9 @@ public class MainActivity extends AppCompatActivity
     private Circle radiusCircle;
     private List<String> placeTypes;
     private ArrayList<Marker> markerList;
-    private ArrayList<HashMap<String,String>> nearbyPlaces;
+    private ArrayList<HashMap<String,String>> nearbyPlacesJsons;
+
+    private StringBuilder next_page_token_builder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,7 +94,8 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         markerList = new ArrayList<>();
-        nearbyPlaces = new ArrayList<>();
+        nearbyPlacesJsons = new ArrayList<>();
+        next_page_token_builder = new StringBuilder();
 
         spinner_place = findViewById(R.id.place_spinner);
         textView_radius = findViewById(R.id.textView_radius);
@@ -159,10 +164,10 @@ public class MainActivity extends AppCompatActivity
         button_list.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(nearbyPlaces.size() > 0){
+                if(nearbyPlacesJsons.size() > 0){
                     ArrayList<String> placesId = new ArrayList<>();
-                    for(int i=0; i<nearbyPlaces.size(); i++){
-                        placesId.add(nearbyPlaces.get(i).get("place_id"));
+                    for(int i=0; i<nearbyPlacesJsons.size(); i++){
+                        placesId.add(nearbyPlacesJsons.get(i).get("place_id"));
                     }
                     Intent intent = new Intent(MainActivity.this, PlaceListActivity.class)
                             .putStringArrayListExtra("placesId",placesId)
@@ -170,7 +175,8 @@ public class MainActivity extends AppCompatActivity
                     startActivity(intent);
                 }
                 else{
-                    Utils.debugMessage("No establishment to show");
+                    Snackbar snackbar = Snackbar.make(findViewById(R.id.constraint_layout_main),"No establishment to show", Snackbar.LENGTH_SHORT);
+                    snackbar.show();
                 }
             }
         });
@@ -312,7 +318,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void getNearbyPlaces(double latitude, double longitude, int radius, String type) {
-
         StringBuilder googlePlacesURL = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
         googlePlacesURL.append("location=").append(latitude).append(",").append(longitude);
         googlePlacesURL.append("&radius=").append(radius);
@@ -323,14 +328,15 @@ public class MainActivity extends AppCompatActivity
                 new Response.Listener<JSONObject>(){
                     @Override
                     public void onResponse(JSONObject result){
-                        nearbyPlaces = DataParser.parse(result);
-                        if(nearbyPlaces.size()>0){
+                        nearbyPlacesJsons = DataParser.parse(result, next_page_token_builder);
+                        if(nearbyPlacesJsons.size()>0){
                             button_list.setVisibility(View.VISIBLE);
-                            setMarkers(nearbyPlaces);
+                            setMarkers(nearbyPlacesJsons);
                         }
                         else{
                             button_list.setVisibility(View.INVISIBLE);
-                            Utils.debugMessage("No places to show");
+                            Snackbar snackbar = Snackbar.make(findViewById(R.id.constraint_layout_main),"No places to show", Snackbar.LENGTH_SHORT);
+                            snackbar.show();
                         }
                     }
                 },
@@ -338,7 +344,8 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onErrorResponse(VolleyError error){
                         Log.e(TAG,"onErrorResponse: Error=" + error.getMessage());
-                        Utils.debugMessage("Request failed, please retry");
+                        Snackbar snackbar = Snackbar.make(findViewById(R.id.constraint_layout_main),"Request failed, please retry", Snackbar.LENGTH_SHORT);
+                        snackbar.show();
                     }
                 }
         );
@@ -384,8 +391,8 @@ public class MainActivity extends AppCompatActivity
             markerList.get(x).remove();
             markerList.remove(x);
         }
-        if(nearbyPlaces.size() > 0){
-            nearbyPlaces.clear();
+        if(nearbyPlacesJsons.size() > 0){
+            nearbyPlacesJsons.clear();
         }
         if(button_list.getVisibility() == View.VISIBLE){
             button_list.setVisibility(View.INVISIBLE);

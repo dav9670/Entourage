@@ -16,11 +16,19 @@ import java.util.HashMap;
 
 public class DataParser {
 
-    public static ArrayList<HashMap<String,String>> parse(JSONObject jsonObject) {
+    public static ArrayList<HashMap<String,String>> parse(JSONObject jsonObject, StringBuilder next_page_token_builder) {
         JSONArray jsonArray = null;
         try {
             Log.d("Places", "parse");
             jsonArray = jsonObject.getJSONArray("results");
+        } catch (JSONException e) {
+            Log.d("Places", "parse error");
+            e.printStackTrace();
+        }
+
+        try {
+            Log.d("Places", "parse_next_page_token");
+            next_page_token_builder.append(jsonObject.getString("next_page_token"));
         } catch (JSONException e) {
             Log.d("Places", "parse error");
             e.printStackTrace();

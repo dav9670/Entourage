@@ -2,6 +2,7 @@ package com.david.entourage;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.support.design.widget.Snackbar;
 import android.util.DisplayMetrics;
 import android.widget.Toast;
 
@@ -21,10 +22,5 @@ public class Utils {
         DisplayMetrics metrics = resources.getDisplayMetrics();
         float dp = px / ((float)metrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT);
         return dp;
-    }
-
-    public static void debugMessage(String message) {
-        Toast toast = Toast.makeText(AppController.getContext(), message, Toast.LENGTH_LONG);
-        toast.show();
     }
 }
