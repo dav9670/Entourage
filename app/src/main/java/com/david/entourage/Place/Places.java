@@ -24,26 +24,53 @@ import static com.david.entourage.Application.AppConfig.TAG;
 public class Places {
 
     private final int MAX_PLACES_PER_REQUEST = 20;
-    private ArrayList<HashMap<String, String>> placeListJson;
+    private ArrayList<HashMap<String, String>> placeJsonList;
     private ArrayList<PlaceInfo> placeList;
     private StringBuilder next_page_token;
+
+    private int radius;
+    private String placeType;
+    private boolean isRequestingJson;
 
     private OnInfoReceivedListener onPlaceJsonReceivedListener;
     private OnInfoReceivedListener onPlaceInfoReceivedListener;
     private OnPhotoReceivedListener onPhotoReceivedListener;
 
     public Places() {
-        placeListJson = new ArrayList<>();
+        placeJsonList = new ArrayList<>();
         placeList = new ArrayList<>();
         next_page_token = new StringBuilder();
+        radius = 1;
+        placeType = new String();
+        isRequestingJson = false;
+    }
+
+    public int getRadius() {
+        return radius;
+    }
+
+    public void setRadius(int radius) {
+        this.radius = radius;
+    }
+
+    public String getPlaceType() {
+        return placeType;
+    }
+
+    public void setPlaceType(String placeType) {
+        this.placeType = placeType;
     }
 
     public ArrayList<PlaceInfo> getPlaceList() {
         return placeList;
     }
 
-    public ArrayList<HashMap<String, String>> getPlaceListJson() {
-        return placeListJson;
+    public ArrayList<HashMap<String, String>> getPlaceJsonList() {
+        return placeJsonList;
+    }
+
+    public boolean isRequestingJson() {
+        return isRequestingJson;
     }
 
     public void setOnPlaceJsonReceivedListener(OnInfoReceivedListener onPlaceJsonReceivedListener) {
@@ -67,7 +94,7 @@ public class Places {
         return null;
     }
 
-    public void requestNearbyPlaceJsons(final LatLng position, final int radius, final String type) {
+    public void requestNearbyPlaceJsons() {
 
         Uri.Builder builder = new Uri.Builder();
         builder.scheme("https")
@@ -77,9 +104,9 @@ public class Places {
                 .appendPath("place")
                 .appendPath("nearbysearch")
                 .appendPath("json")
-                .appendQueryParameter("location", Double.toString(position.latitude) + "," + Double.toString(position.longitude))
+                .appendQueryParameter("location", Double.toString(AppController.getLastKnownLocation().getLatitude()) + "," + Double.toString(AppController.getLastKnownLocation().getLongitude()))
                 .appendQueryParameter("radius", Integer.toString(radius))
-                .appendQueryParameter("type", type)
+                .appendQueryParameter("type", placeType)
                 .appendQueryParameter("key", GOOGLE_BROWSER_API_KEY);
         if (!next_page_token.toString().equals("")) {
             builder.appendQueryParameter("pagetoken", next_page_token.toString());
@@ -92,7 +119,8 @@ public class Places {
                     @Override
                     public void onResponse(JSONObject result) {
 
-                        DataParser.parse(result, placeListJson, next_page_token);
+                        DataParser.parse(result, placeJsonList, next_page_token);
+                        isRequestingJson = false;
                         if (onPlaceJsonReceivedListener != null) {
                             onPlaceJsonReceivedListener.onInfoReceived();
                         }
@@ -106,25 +134,26 @@ public class Places {
                 }
         );
         AppController.getInstance().addToRequestQueueTimer(request);
+        isRequestingJson = true;
     }
 
-    public void requestPlaceInfo(String placeId){
+    public void requestPlaceInfo(String placeId) {
         PlaceInfoGetter placeInfoGetter = new PlaceInfoGetter(placeList);
         placeInfoGetter.setOnPlaceOnInfoReceivedListenerListener(onPlaceInfoReceivedListener);
         placeInfoGetter.execute(new String[]{placeId});
     }
 
-    public boolean hasPlaces(){
-        return (placeListJson.size() > 0 || placeList.size() > 0);
+    public boolean hasPlaces() {
+        return (placeJsonList.size() > 0 || placeList.size() > 0);
     }
 
-    public boolean hasMorePlaces(){
+    public boolean hasMorePlaces() {
         return !next_page_token.toString().equals("");
     }
 
     public void requestPlaceInfos() {
 
-        ArrayList<HashMap<String, String>> placeListJsonToAdd = new ArrayList<>(placeListJson);
+        ArrayList<HashMap<String, String>> placeListJsonToAdd = new ArrayList<>(placeJsonList);
 
         for (int i = 0; i < placeListJsonToAdd.size(); i++) {
             boolean found = false;
@@ -160,7 +189,7 @@ public class Places {
     }
 
     public void clearPlaces() {
-        placeListJson.clear();
+        placeJsonList.clear();
         next_page_token.setLength(0);
         placeList.clear();
     }

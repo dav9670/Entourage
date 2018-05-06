@@ -30,7 +30,7 @@ public class AppController extends Application {
         super.onCreate();
         sInstance = this;
         places = new Places();
-        requestInterval = 2500;
+        requestInterval = 3000;
         lastRequestTime = System.currentTimeMillis();
     }
 

@@ -51,7 +51,6 @@ import java.util.List;
 
 import static com.david.entourage.Application.AppConfig.CONNECTION_FAILURE_RESOLUTION_REQUEST;
 import static com.david.entourage.Application.AppConfig.LOCATION_PERMISSION;
-import static com.david.entourage.Utils.getZoomLevel;
 
 //TODO Add more than 20 establishments
 //TODO Open PlaceInfoActivity from marker
@@ -71,7 +70,6 @@ public class MapActivity extends AppCompatActivity
     private GoogleMap mGoogleMap;
     private FusedLocationProviderClient mFusedLocationClient;
 
-    private int radius;
     private boolean mLocationPermissionGranted;
     private Circle radiusCircle;
     private List<String> placeTypes;
@@ -95,6 +93,7 @@ public class MapActivity extends AppCompatActivity
         fragMap.getMapAsync(this);
 
         places = AppController.getPlaces();
+        places.clearListeners();
         places.setOnPlaceJsonReceivedListener(new OnInfoReceivedListener() {
             @Override
             public void onInfoReceived() {
@@ -102,28 +101,32 @@ public class MapActivity extends AppCompatActivity
             }
         });
 
-        //Sets text inside spinner
+        placeTypes = Arrays.asList(getResources().getStringArray(R.array.placeTypes));
+
         placeTypes_Adapter = ArrayAdapter.createFromResource(this, R.array.placeTypes_UF, android.R.layout.simple_spinner_item);
         placeTypes_Adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner_place.setAdapter(placeTypes_Adapter);
         spinner_place.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                resetNearbyPlaces();
+                places.setPlaceType(placeTypes.get((int) spinner_place.getSelectedItemId()));
+                clearNearbyPlaces();
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {
-                resetNearbyPlaces();
+                clearNearbyPlaces();
             }
         });
+        places.setPlaceType(placeTypes.get((int) spinner_place.getSelectedItemId()));
+
 
         seekBar_radius.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                resetNearbyPlaces();
-                radius = (seekBar.getProgress() + 1) * 1000;
-                textView_radius.setText(radius/1000 + " " + getString(R.string.Radius));
+                clearNearbyPlaces();
+                places.setRadius((seekBar.getProgress() + 1) * 1000);
+                textView_radius.setText(places.getRadius()/1000 + " " + getString(R.string.Radius));
                 updateCamera();
             }
 
@@ -138,14 +141,13 @@ public class MapActivity extends AppCompatActivity
             }
         });
         seekBar_radius.setMax(49);
-
-        placeTypes = Arrays.asList(getResources().getStringArray(R.array.placeTypes));
+        places.setRadius((seekBar_radius.getProgress() + 1) * 1000);
 
         button_search.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if(AppController.getLastKnownLocation() != null){
-                    places.requestNearbyPlaceJsons(new LatLng(AppController.getLastKnownLocation().getLatitude(),AppController.getLastKnownLocation().getLongitude()),radius,placeTypes.get((int) spinner_place.getSelectedItemId()));
+                    places.requestNearbyPlaceJsons();
                 }
                 else{
                     getLastLocation();
@@ -229,6 +231,9 @@ public class MapActivity extends AppCompatActivity
                 onPlaceJsonReceived();
             }
         });
+        clearMarkers();
+        setMarkers(places.getPlaceJsonList());
+        onPlaceJsonReceived();
     }
 
     private void getLocationPermission() {
@@ -292,7 +297,7 @@ public class MapActivity extends AppCompatActivity
                             if(mGoogleMap!= null){
                                 CircleOptions circleOptions = new CircleOptions()
                                         .center(new LatLng(AppController.getLastKnownLocation().getLatitude(), AppController.getLastKnownLocation().getLongitude()))
-                                        .radius(radius * 1000)
+                                        .radius(places.getRadius() * 1000)
                                         .strokeWidth(10)
                                         .strokeColor(Color.GREEN)
                                         .fillColor(Color.argb(128, 255, 0, 0));
@@ -326,7 +331,7 @@ public class MapActivity extends AppCompatActivity
 
     private void updateCamera() {
         if(AppController.getGoogleApiClient() != null && radiusCircle != null && AppController.getGoogleApiClient().isConnected()) {
-            radiusCircle.setRadius(radius);
+            radiusCircle.setRadius(places.getRadius());
             LatLng latLng = new LatLng(AppController.getLastKnownLocation().getLatitude(),AppController.getLastKnownLocation().getLongitude());
 
             CameraPosition cameraPosition = new CameraPosition.Builder()
@@ -337,10 +342,10 @@ public class MapActivity extends AppCompatActivity
         }
     }
 
-    private void setMarkers(ArrayList<HashMap<String,String>> nearbyPlaces){
-        resetMarkers();
-        for(int i=0; i<nearbyPlaces.size(); i++){
-            HashMap<String,String> place = nearbyPlaces.get(i);
+    private void setMarkers(ArrayList<HashMap<String,String>> placeJsonList){
+        clearMarkers();
+        for(int i=0; i<placeJsonList.size(); i++){
+            HashMap<String,String> place = placeJsonList.get(i);
             MarkerOptions markerOptions = new MarkerOptions()
                     .position(new LatLng(Double.parseDouble(place.get("lat")),Double.parseDouble(place.get("lng"))))
                     .title(place.get("name") + " : " + place.get("vicinity"))
@@ -349,22 +354,23 @@ public class MapActivity extends AppCompatActivity
         }
     }
 
-    private void resetMarkers(){
+    private void clearMarkers(){
         Marker markers[] = markerList.keySet().toArray(new Marker[markerList.keySet().size()]);
         for(int i=0; i<markers.length; i++){
             markers[i].remove();
         }
+        markerList.clear();
     }
 
-    public void resetNearbyPlaces(){
+    public void clearNearbyPlaces(){
         places.clearPlaces();
-        resetMarkers();
+        clearMarkers();
         button_search.setText("Search");
         button_search.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if(AppController.getLastKnownLocation() != null){
-                    places.requestNearbyPlaceJsons(new LatLng(AppController.getLastKnownLocation().getLatitude(),AppController.getLastKnownLocation().getLongitude()),radius,placeTypes.get((int) spinner_place.getSelectedItemId()));
+                    places.requestNearbyPlaceJsons();
                 }
                 else{
                     getLastLocation();
@@ -379,7 +385,7 @@ public class MapActivity extends AppCompatActivity
     public void onPlaceJsonReceived(){
         if(places.hasPlaces()){
             button_list.setVisibility(View.VISIBLE);
-            setMarkers(places.getPlaceListJson());
+            setMarkers(places.getPlaceJsonList());
 
             if(places.hasMorePlaces()){
                 button_search.setText("More");
@@ -389,7 +395,7 @@ public class MapActivity extends AppCompatActivity
                 button_search.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        resetNearbyPlaces();
+                        clearNearbyPlaces();
                     }
                 });
             }

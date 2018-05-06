@@ -16,6 +16,7 @@ import com.david.entourage.Place.PlaceInfo;
 import com.david.entourage.Place.OnInfoReceivedListener;
 import com.david.entourage.Place.Places;
 import com.david.entourage.R;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -42,11 +43,18 @@ public class PlaceListActivity extends AppCompatActivity {
 
         places = AppController.getPlaces();
         places.clearListeners();
-
+        places.setOnPlaceJsonReceivedListener(new OnInfoReceivedListener() {
+            @Override
+            public void onInfoReceived() {
+                places.requestPlaceInfos();
+            }
+        });
         places.setOnPlaceInfoReceivedListener(new OnInfoReceivedListener() {
             @Override
             public void onInfoReceived() {
-                Collections.sort(places.getPlaceList(),comparator);
+                if(comparator != null){
+                    Collections.sort(places.getPlaceList(),comparator);
+                }
                 placeAdapter.notifyDataSetChanged();
             }
         });
@@ -67,8 +75,6 @@ public class PlaceListActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         setSupportActionBar(toolbar);
-
-        comparator = PlaceInfo.PlaceInfoCompDist;
 
         button_sort.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -114,16 +120,41 @@ public class PlaceListActivity extends AppCompatActivity {
         getSupportActionBar().setTitle(placeType);
 
         places.requestPlaceInfos();
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                if(recyclerView != null && recyclerView.getLayoutManager() != null){
+                    try{
+                        if(recyclerView.getLayoutManager().isViewPartiallyVisible(recyclerView.getLayoutManager().findViewByPosition(recyclerView.getLayoutManager().getItemCount()-1),false,true)){
+                            if(places.hasMorePlaces() && !places.isRequestingJson()){
+                                places.requestNearbyPlaceJsons();
+                            }
+                        }
+                    }catch (Exception e){
+
+                    }
+                }
+            }
+        });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         places.clearListeners();
+        places.setOnPlaceJsonReceivedListener(new OnInfoReceivedListener() {
+            @Override
+            public void onInfoReceived() {
+                places.requestPlaceInfos();
+            }
+        });
         places.setOnPlaceInfoReceivedListener(new OnInfoReceivedListener() {
             @Override
             public void onInfoReceived() {
-                Collections.sort(places.getPlaceList(),comparator);
+                if(comparator != null){
+                    Collections.sort(places.getPlaceList(),comparator);
+                }
                 placeAdapter.notifyDataSetChanged();
             }
         });
@@ -135,5 +166,9 @@ public class PlaceListActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    public void setListeners(){
+
     }
 }
