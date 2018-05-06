@@ -93,9 +93,6 @@ public class Places {
                     public void onResponse(JSONObject result) {
 
                         DataParser.parse(result, placeListJson, next_page_token);
-                        if (!next_page_token.toString().equals("")) {
-                            requestNearbyPlaceJsons(position, radius, type);
-                        }
                         if (onPlaceJsonReceivedListener != null) {
                             onPlaceJsonReceivedListener.onInfoReceived();
                         }
@@ -108,19 +105,21 @@ public class Places {
                     }
                 }
         );
-
-        if(next_page_token.toString().equals("")){
-            AppController.getInstance().addToRequestQueue(request);
-        }
-        else {
-            AppController.getInstance().addToRequestQueueTimer(request,1500);
-        }
+        AppController.getInstance().addToRequestQueueTimer(request);
     }
 
-    public void requesPlaceInfo(String placeId){
+    public void requestPlaceInfo(String placeId){
         PlaceInfoGetter placeInfoGetter = new PlaceInfoGetter(placeList);
         placeInfoGetter.setOnPlaceOnInfoReceivedListenerListener(onPlaceInfoReceivedListener);
         placeInfoGetter.execute(new String[]{placeId});
+    }
+
+    public boolean hasPlaces(){
+        return (placeListJson.size() > 0 || placeList.size() > 0);
+    }
+
+    public boolean hasMorePlaces(){
+        return !next_page_token.toString().equals("");
     }
 
     public void requestPlaceInfos() {

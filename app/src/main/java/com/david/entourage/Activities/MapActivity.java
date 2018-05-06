@@ -24,6 +24,7 @@ import android.widget.TextView;
 import com.david.entourage.Application.AppController;
 import com.david.entourage.Place.OnInfoReceivedListener;
 import com.david.entourage.R;
+import com.david.entourage.Utils;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -47,14 +48,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 
 import static com.david.entourage.Application.AppConfig.CONNECTION_FAILURE_RESOLUTION_REQUEST;
 import static com.david.entourage.Application.AppConfig.LOCATION_PERMISSION;
+import static com.david.entourage.Utils.getZoomLevel;
 
 //TODO Add more than 20 establishments
 //TODO Open PlaceInfoActivity from marker
-// Vendredi 16h30
 
 public class MapActivity extends AppCompatActivity
     implements OnMapReadyCallback,
@@ -98,15 +98,7 @@ public class MapActivity extends AppCompatActivity
         places.setOnPlaceJsonReceivedListener(new OnInfoReceivedListener() {
             @Override
             public void onInfoReceived() {
-                if(places.getPlaceListJson().size()>0){
-                    button_list.setVisibility(View.VISIBLE);
-                    setMarkers(places.getPlaceListJson());
-                }
-                else{
-                    button_list.setVisibility(View.INVISIBLE);
-                    Snackbar snackbar = Snackbar.make(findViewById(R.id.constraint_layout_main),"No places to show", Snackbar.LENGTH_SHORT);
-                    snackbar.show();
-                }
+                onPlaceJsonReceived();
             }
         });
 
@@ -152,31 +144,21 @@ public class MapActivity extends AppCompatActivity
         button_search.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                resetNearbyPlaces();
                 if(AppController.getLastKnownLocation() != null){
                     places.requestNearbyPlaceJsons(new LatLng(AppController.getLastKnownLocation().getLatitude(),AppController.getLastKnownLocation().getLongitude()),radius,placeTypes.get((int) spinner_place.getSelectedItemId()));
                 }
                 else{
                     getLastLocation();
                 }
-
             }
         });
-
 
         button_list.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(places.getPlaceListJson().size() > 0){
-                    ArrayList<String> placesId = new ArrayList<>();
-                    Intent intent = new Intent(MapActivity.this, PlaceListActivity.class)
-                            .putExtra("placeType", spinner_place.getSelectedItem().toString());
-                    startActivity(intent);
-                }
-                else{
-                    Snackbar snackbar = Snackbar.make(findViewById(R.id.constraint_layout_main),"No establishment to show", Snackbar.LENGTH_SHORT);
-                    snackbar.show();
-                }
+                Intent intent = new Intent(MapActivity.this, PlaceListActivity.class)
+                        .putExtra("placeType", spinner_place.getSelectedItem().toString());
+                startActivity(intent);
             }
         });
 
@@ -203,7 +185,7 @@ public class MapActivity extends AppCompatActivity
                         startActivity(intent);
                     }
                 });
-                places.requesPlaceInfo(markerList.get(marker));
+                places.requestPlaceInfo(markerList.get(marker));
             }
         });
         //Initialize Google Play Services
@@ -244,15 +226,7 @@ public class MapActivity extends AppCompatActivity
         places.setOnPlaceJsonReceivedListener(new OnInfoReceivedListener() {
             @Override
             public void onInfoReceived() {
-                if(places.getPlaceListJson().size()>0){
-                    button_list.setVisibility(View.VISIBLE);
-                    setMarkers(places.getPlaceListJson());
-                }
-                else{
-                    button_list.setVisibility(View.INVISIBLE);
-                    Snackbar snackbar = Snackbar.make(findViewById(R.id.constraint_layout_main),"No places to show", Snackbar.LENGTH_SHORT);
-                    snackbar.show();
-                }
+                onPlaceJsonReceived();
             }
         });
     }
@@ -350,6 +324,19 @@ public class MapActivity extends AppCompatActivity
         }
     }
 
+    private void updateCamera() {
+        if(AppController.getGoogleApiClient() != null && radiusCircle != null && AppController.getGoogleApiClient().isConnected()) {
+            radiusCircle.setRadius(radius);
+            LatLng latLng = new LatLng(AppController.getLastKnownLocation().getLatitude(),AppController.getLastKnownLocation().getLongitude());
+
+            CameraPosition cameraPosition = new CameraPosition.Builder()
+                    .target(latLng)
+                    .zoom(Utils.getZoomLevel(radiusCircle)-(float)0.75)
+                    .build();
+            mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        }
+    }
+
     private void setMarkers(ArrayList<HashMap<String,String>> nearbyPlaces){
         resetMarkers();
         for(int i=0; i<nearbyPlaces.size(); i++){
@@ -369,34 +356,48 @@ public class MapActivity extends AppCompatActivity
         }
     }
 
-    private void updateCamera() {
-        if(AppController.getGoogleApiClient() != null && radiusCircle != null && AppController.getGoogleApiClient().isConnected()) {
-            radiusCircle.setRadius(radius);
-            LatLng latLng = new LatLng(AppController.getLastKnownLocation().getLatitude(),AppController.getLastKnownLocation().getLongitude());
-
-            CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(latLng)
-                    .zoom(getZoomLevel(radiusCircle)-(float)0.75)
-                    .build();
-            mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-        }
-    }
-
-    public float getZoomLevel(Circle circle) {
-        float zoomLevel = 0;
-        if (circle != null){
-            double radius = circle.getRadius();
-            double scale = radius / 500;
-            zoomLevel = (float) (16 - Math.log(scale) / Math.log(2));
-        }
-        return zoomLevel;
-    }
-
     public void resetNearbyPlaces(){
         places.clearPlaces();
         resetMarkers();
+        button_search.setText("Search");
+        button_search.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(AppController.getLastKnownLocation() != null){
+                    places.requestNearbyPlaceJsons(new LatLng(AppController.getLastKnownLocation().getLatitude(),AppController.getLastKnownLocation().getLongitude()),radius,placeTypes.get((int) spinner_place.getSelectedItemId()));
+                }
+                else{
+                    getLastLocation();
+                }
+            }
+        });
         if(button_list.getVisibility() == View.VISIBLE){
             button_list.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    public void onPlaceJsonReceived(){
+        if(places.hasPlaces()){
+            button_list.setVisibility(View.VISIBLE);
+            setMarkers(places.getPlaceListJson());
+
+            if(places.hasMorePlaces()){
+                button_search.setText("More");
+            }
+            else{
+                button_search.setText("Reset");
+                button_search.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        resetNearbyPlaces();
+                    }
+                });
+            }
+        }
+        else{
+            button_list.setVisibility(View.INVISIBLE);
+            Snackbar snackbar = Snackbar.make(findViewById(R.id.constraint_layout_main),"No places to show", Snackbar.LENGTH_SHORT);
+            snackbar.show();
         }
     }
 }

@@ -18,40 +18,49 @@ public class DataParser {
 
     public static void parse(JSONObject jsonObject,ArrayList<HashMap<String,String>> nearbyPlacesJson, StringBuilder next_page_token_builder) {
 
+        String status = null;
         try {
-            String next_page_token = jsonObject.getString("next_page_token");
-            next_page_token_builder.setLength(0);
-            next_page_token_builder.append(next_page_token);
-            Log.d("next_page_token", next_page_token);
-
-        } catch (JSONException e) {
-            next_page_token_builder.setLength(0);
-            //Log.d("Places", "parse error");
-            //e.printStackTrace();
+            status = jsonObject.getString("status");
+        }catch (Exception e){
+            
         }
 
-        JSONArray jsonArray = null;
-        try {
-            Log.d("Places", "parse");
-            jsonArray = jsonObject.getJSONArray("results");
-        } catch (JSONException e) {
-            Log.d("Places", "parse error");
-            e.printStackTrace();
-        }
+        if(status != null && !status.equals("INVALID_REQUEST")){
+            try {
+                String next_page_token = jsonObject.getString("next_page_token");
+                next_page_token_builder.setLength(0);
+                next_page_token_builder.append(next_page_token);
+                Log.d("next_page_token", next_page_token);
 
-        for(int i=0; i<jsonArray.length(); i++){
-            try{
-                JSONObject jsonPlace = jsonArray.getJSONObject(i);
-                HashMap<String,String> place = new HashMap<>();
-                place.put("place_id",jsonPlace.getString("place_id"));
-                place.put("name",jsonPlace.getString("name"));
-                place.put("vicinity",jsonPlace.getString("vicinity"));
-                place.put("lat",jsonPlace.getJSONObject("geometry").getJSONObject("location").getString("lat"));
-                place.put("lng",jsonPlace.getJSONObject("geometry").getJSONObject("location").getString("lng"));
+            } catch (JSONException e) {
+                next_page_token_builder.setLength(0);
+                //Log.d("Places", "parse error");
+                //e.printStackTrace();
+            }
 
-                nearbyPlacesJson.add(place);
-            }catch (JSONException e){
-                Log.e("E","JsonException");
+            JSONArray jsonArray = null;
+            try {
+                Log.d("Places", "parse");
+                jsonArray = jsonObject.getJSONArray("results");
+            } catch (JSONException e) {
+                Log.d("Places", "parse error");
+                e.printStackTrace();
+            }
+
+            for(int i=0; i<jsonArray.length(); i++){
+                try{
+                    JSONObject jsonPlace = jsonArray.getJSONObject(i);
+                    HashMap<String,String> place = new HashMap<>();
+                    place.put("place_id",jsonPlace.getString("place_id"));
+                    place.put("name",jsonPlace.getString("name"));
+                    place.put("vicinity",jsonPlace.getString("vicinity"));
+                    place.put("lat",jsonPlace.getJSONObject("geometry").getJSONObject("location").getString("lat"));
+                    place.put("lng",jsonPlace.getJSONObject("geometry").getJSONObject("location").getString("lng"));
+
+                    nearbyPlacesJson.add(place);
+                }catch (JSONException e){
+                    Log.e("E","JsonException");
+                }
             }
         }
     }

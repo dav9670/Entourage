@@ -18,6 +18,8 @@ import static com.david.entourage.Application.AppConfig.TAG;
 public class AppController extends Application {
 
     private RequestQueue mRequestQueue;
+    private int requestInterval;
+    private long lastRequestTime;
     private static AppController sInstance;
     private static Location lastKnownLocation;
     private static GoogleApiClient googleApiClient;
@@ -28,6 +30,8 @@ public class AppController extends Application {
         super.onCreate();
         sInstance = this;
         places = new Places();
+        requestInterval = 2500;
+        lastRequestTime = System.currentTimeMillis();
     }
 
     public static synchronized AppController getInstance(){
@@ -51,7 +55,7 @@ public class AppController extends Application {
         getRequestQueue().add(req);
     }
 
-    public <T> void addToRequestQueueTimer(final Request<T> req, final int timeMs){
+    public <T> void addToRequestQueueTimer(final Request<T> req){
         Handler handler = new Handler();
         Runnable runnable = new Runnable() {
             @Override
@@ -60,7 +64,9 @@ public class AppController extends Application {
                 getRequestQueue().add(req);
             }
         };
-        handler.postDelayed(runnable,timeMs);
+        long delay = requestInterval - (System.currentTimeMillis() - lastRequestTime);
+        handler.postDelayed(runnable,delay > 0 ? delay : 0);
+        lastRequestTime = System.currentTimeMillis();
     }
 
     public void cancelPendingRequestQueue(Object Tag){
