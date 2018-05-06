@@ -1,4 +1,4 @@
-package com.david.entourage;
+package com.david.entourage.Activities;
 
 import android.content.Intent;
 import android.graphics.BitmapFactory;
@@ -10,8 +10,9 @@ import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
-import com.david.entourage.Activities.PlaceInfoActivity;
 import com.david.entourage.Application.AppController;
+import com.david.entourage.Place.PlaceInfo;
+import com.david.entourage.R;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;

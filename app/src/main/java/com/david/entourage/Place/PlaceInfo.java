@@ -1,4 +1,4 @@
-package com.david.entourage;
+package com.david.entourage.Place;
 
 import android.graphics.Bitmap;
 import android.location.Location;
@@ -16,11 +16,7 @@ import java.util.Comparator;
 import java.util.Locale;
 import java.util.Observable;
 
-/**
- * Created by David on 3/26/2018.
- */
-
-public class PlaceInfo extends Observable implements Parcelable{
+public class PlaceInfo implements Parcelable{
     private String address;
     private String attributions;
     private String id;
@@ -49,9 +45,6 @@ public class PlaceInfo extends Observable implements Parcelable{
         this.uri = place.getWebsiteUri();
 
         this.photos = new ArrayList<>();
-
-        setChanged();
-        notifyObservers();
     }
 
     @Override

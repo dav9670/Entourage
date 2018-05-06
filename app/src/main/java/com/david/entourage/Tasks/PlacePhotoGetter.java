@@ -2,10 +2,10 @@ package com.david.entourage.Tasks;
 
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
-import android.support.v7.widget.RecyclerView;
 
 import com.david.entourage.Application.AppController;
-import com.david.entourage.PlaceInfo;
+import com.david.entourage.Place.OnPhotoReceivedListener;
+import com.david.entourage.Place.PlaceInfo;
 import com.google.android.gms.location.places.PlacePhotoMetadata;
 import com.google.android.gms.location.places.PlacePhotoMetadataBuffer;
 import com.google.android.gms.location.places.Places;
@@ -14,19 +14,22 @@ import com.google.android.gms.location.places.Places;
 public class PlacePhotoGetter extends AsyncTask<Void, Void, PlacePhotoMetadataBuffer> {
 
     private PlaceInfo placeInfo;
-    private RecyclerView.Adapter adapter;
     private int photoWidth;
     private int photoHeight;
     private int nbPhotos;
 
-    public PlacePhotoGetter(PlaceInfo placeInfo, RecyclerView.Adapter adapter, int photoWidth, int photoHeight, int nbPhotos) {
+    private OnPhotoReceivedListener onPhotoReceivedListener;
+
+    public PlacePhotoGetter(PlaceInfo placeInfo, int photoWidth, int photoHeight, int nbPhotos) {
         this.placeInfo = placeInfo;
-        this.adapter = adapter;
         this.photoWidth = photoWidth;
         this.photoHeight = photoHeight;
         this.nbPhotos = nbPhotos;
     }
 
+    public void setOnPhotoReceivedListener(OnPhotoReceivedListener onPhotoReceivedListener) {
+        this.onPhotoReceivedListener = onPhotoReceivedListener;
+    }
 
     @Override
     protected void onPreExecute() {
@@ -70,7 +73,9 @@ public class PlacePhotoGetter extends AsyncTask<Void, Void, PlacePhotoMetadataBu
         protected void onPostExecute(Bitmap bitmap) {
             super.onPostExecute(bitmap);
             placeInfo.addPhoto(bitmap);
-            adapter.notifyDataSetChanged();
+            if(onPhotoReceivedListener != null){
+                onPhotoReceivedListener.onPhotoReceived(placeInfo);
+            }
         }
     }
 }

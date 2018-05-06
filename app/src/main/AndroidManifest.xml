@@ -33,7 +33,7 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBqcsmV18Z-p7K9vA9gAtOBf9O1ZZgwN6Y" />
 
-        <activity android:name=".Activities.MainActivity">
+        <activity android:name=".Activities.MapActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

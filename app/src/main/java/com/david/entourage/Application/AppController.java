@@ -3,16 +3,15 @@ package com.david.entourage.Application;
 import android.app.Application;
 import android.content.Context;
 import android.location.Location;
+import android.os.Handler;
 import android.text.TextUtils;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
-import com.david.entourage.PlaceInfo;
+import com.david.entourage.Place.Places;
 import com.google.android.gms.common.api.GoogleApiClient;
 
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.david.entourage.Application.AppConfig.TAG;
 
@@ -22,14 +21,13 @@ public class AppController extends Application {
     private static AppController sInstance;
     private static Location lastKnownLocation;
     private static GoogleApiClient googleApiClient;
-    private static ArrayList<PlaceInfo> nearbyPlaces;
-
+    private static Places places;
 
     @Override
     public void onCreate(){
         super.onCreate();
         sInstance = this;
-        nearbyPlaces = new ArrayList<>();
+        places = new Places();
     }
 
     public static synchronized AppController getInstance(){
@@ -51,6 +49,18 @@ public class AppController extends Application {
     public <T> void addToRequestQueue(Request<T> req){
         req.setTag(TAG);
         getRequestQueue().add(req);
+    }
+
+    public <T> void addToRequestQueueTimer(final Request<T> req, final int timeMs){
+        Handler handler = new Handler();
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                req.setTag(TAG);
+                getRequestQueue().add(req);
+            }
+        };
+        handler.postDelayed(runnable,timeMs);
     }
 
     public void cancelPendingRequestQueue(Object Tag){
@@ -79,16 +89,7 @@ public class AppController extends Application {
         AppController.googleApiClient = googleApiClient;
     }
 
-    public static ArrayList<PlaceInfo> getNearbyPlaces() {
-        return nearbyPlaces;
-    }
-    
-    public static PlaceInfo getPlaceInfo(String placeId){
-        for (PlaceInfo placeInfo:
-                nearbyPlaces) {
-            if(placeInfo.getId().equals(placeId))
-                return placeInfo;
-        }
-        return null;
+    public static Places getPlaces() {
+        return places;
     }
 }

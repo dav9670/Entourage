@@ -16,7 +16,20 @@ import java.util.HashMap;
 
 public class DataParser {
 
-    public static ArrayList<HashMap<String,String>> parse(JSONObject jsonObject, StringBuilder next_page_token_builder) {
+    public static void parse(JSONObject jsonObject,ArrayList<HashMap<String,String>> nearbyPlacesJson, StringBuilder next_page_token_builder) {
+
+        try {
+            String next_page_token = jsonObject.getString("next_page_token");
+            next_page_token_builder.setLength(0);
+            next_page_token_builder.append(next_page_token);
+            Log.d("next_page_token", next_page_token);
+
+        } catch (JSONException e) {
+            next_page_token_builder.setLength(0);
+            //Log.d("Places", "parse error");
+            //e.printStackTrace();
+        }
+
         JSONArray jsonArray = null;
         try {
             Log.d("Places", "parse");
@@ -25,16 +38,6 @@ public class DataParser {
             Log.d("Places", "parse error");
             e.printStackTrace();
         }
-
-        try {
-            Log.d("Places", "parse_next_page_token");
-            next_page_token_builder.append(jsonObject.getString("next_page_token"));
-        } catch (JSONException e) {
-            Log.d("Places", "parse error");
-            e.printStackTrace();
-        }
-
-        ArrayList<HashMap<String,String>> nearbyPlaces = new ArrayList<>();
 
         for(int i=0; i<jsonArray.length(); i++){
             try{
@@ -46,11 +49,10 @@ public class DataParser {
                 place.put("lat",jsonPlace.getJSONObject("geometry").getJSONObject("location").getString("lat"));
                 place.put("lng",jsonPlace.getJSONObject("geometry").getJSONObject("location").getString("lng"));
 
-                nearbyPlaces.add(place);
+                nearbyPlacesJson.add(place);
             }catch (JSONException e){
                 Log.e("E","JsonException");
             }
         }
-        return nearbyPlaces;
     }
 }

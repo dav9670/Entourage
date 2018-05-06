@@ -1,4 +1,4 @@
-package com.david.entourage;
+package com.david.entourage.Activities;
 
 import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
@@ -6,6 +6,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+
+import com.david.entourage.R;
 
 import java.util.ArrayList;
 

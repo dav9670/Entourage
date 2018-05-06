@@ -1,7 +1,6 @@
 package com.david.entourage.Activities;
 
 import android.net.Uri;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -11,10 +10,10 @@ import android.widget.TextView;
 
 import com.david.entourage.Application.AppConfig;
 import com.david.entourage.Application.AppController;
-import com.david.entourage.PhotoAdapter;
-import com.david.entourage.PlaceInfo;
+import com.david.entourage.Place.OnPhotoReceivedListener;
+import com.david.entourage.Place.PlaceInfo;
+import com.david.entourage.Place.Places;
 import com.david.entourage.R;
-import com.david.entourage.Tasks.PlacePhotoGetter;
 import com.david.entourage.Utils;
 
 import java.text.DecimalFormat;
@@ -27,6 +26,7 @@ import java.util.regex.Pattern;
 
 public class PlaceInfoActivity extends AppCompatActivity {
 
+    private Places places;
     private PlaceInfo placeInfo;
 
     private TextView textView_address;
@@ -36,6 +36,7 @@ public class PlaceInfoActivity extends AppCompatActivity {
     private TextView textView_uri;
 
     private RecyclerView recyclerView;
+    private PhotoAdapter photoAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +50,15 @@ public class PlaceInfoActivity extends AppCompatActivity {
         textView_uri = findViewById(R.id.textView_uri);
         recyclerView = findViewById(R.id.recyclerView_photos);
 
-        placeInfo = AppController.getPlaceInfo(getIntent().getStringExtra("placeId"));
+        places = AppController.getPlaces();
+        places.clearListeners();
+        places.setOnPhotoReceivedListener(new OnPhotoReceivedListener() {
+            @Override
+            public void onPhotoReceived(PlaceInfo placeInfo) {
+                photoAdapter.notifyDataSetChanged();
+            }
+        });
+        placeInfo = places.getPlaceInfo(getIntent().getStringExtra("placeId"));
 
         if(placeInfo != null){
             getSupportActionBar().setTitle(placeInfo.getName());
@@ -59,14 +68,13 @@ public class PlaceInfoActivity extends AppCompatActivity {
             df.setMaximumFractionDigits(2);
             textView_distance.setText(df.format(placeInfo.getDistance()/1000) + " km");
             textView_tel.setText(placeInfo.getPhoneNumber());
+            textView_tel.setAutoLinkMask(Linkify.PHONE_NUMBERS);
+            Linkify.addLinks(textView_tel,Linkify.PHONE_NUMBERS);
             textView_uri.setText(placeInfo.getUri() != null ? placeInfo.getUri().toString() : "No website provided");
 
-
             recyclerView.setLayoutManager(new LinearLayoutManager(PlaceInfoActivity.this,LinearLayoutManager.HORIZONTAL,false));
-            PhotoAdapter photoAdapter = new PhotoAdapter(placeInfo.getPhotos());
+            photoAdapter = new PhotoAdapter(placeInfo.getPhotos());
             recyclerView.setAdapter(photoAdapter);
-            PlacePhotoGetter placePhotoGetter = new PlacePhotoGetter(placeInfo,photoAdapter,(int) Utils.convertDpToPixel(AppConfig.IMAGEVIEW_WIDTH, AppController.getContext()),(int)Utils.convertDpToPixel(AppConfig.IMAGEVIEW_HEIGHT,AppController.getContext()),10);
-            placePhotoGetter.execute();
 
             Uri.Builder builder = new Uri.Builder();
             builder.scheme("https")
@@ -80,6 +88,26 @@ public class PlaceInfoActivity extends AppCompatActivity {
             Uri googleMapsUri = builder.build();
             Pattern pattern = Pattern.compile("[a-zA-Z ]");
             Linkify.addLinks(textView_googleMaps,pattern,googleMapsUri.toString());
+
+            places.setOnPhotoReceivedListener(new OnPhotoReceivedListener() {
+                @Override
+                public void onPhotoReceived(PlaceInfo placeInfo) {
+                    photoAdapter.notifyDataSetChanged();
+                }
+            });
+            places.requestPlacePhotos(placeInfo,(int)Utils.convertDpToPixel(AppConfig.IMAGEVIEW_WIDTH,AppController.getContext()),(int)Utils.convertDpToPixel(AppConfig.IMAGEVIEW_HEIGHT,AppController.getContext()),10);
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        places.clearListeners();
+        places.setOnPhotoReceivedListener(new OnPhotoReceivedListener() {
+            @Override
+            public void onPhotoReceived(PlaceInfo placeInfo) {
+                photoAdapter.notifyDataSetChanged();
+            }
+        });
     }
 }

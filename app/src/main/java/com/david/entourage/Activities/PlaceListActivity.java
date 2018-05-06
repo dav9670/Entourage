@@ -10,14 +10,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.PopupMenu;
 
-import com.david.entourage.Application.AppConfig;
 import com.david.entourage.Application.AppController;
-import com.david.entourage.PlaceAdapter;
-import com.david.entourage.PlaceInfo;
-import com.david.entourage.Tasks.PlaceInfoGetter;
+import com.david.entourage.Place.OnPhotoReceivedListener;
+import com.david.entourage.Place.PlaceInfo;
+import com.david.entourage.Place.OnInfoReceivedListener;
+import com.david.entourage.Place.Places;
 import com.david.entourage.R;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
@@ -32,8 +31,7 @@ public class PlaceListActivity extends AppCompatActivity {
 
     private PlaceAdapter placeAdapter;
 
-    private ArrayList<String> placeIds;
-    private ArrayList<PlaceInfo> nearbyPlaces;
+    private Places places;
 
     private Comparator comparator;
 
@@ -42,7 +40,24 @@ public class PlaceListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_placelist);
 
-        nearbyPlaces = AppController.getNearbyPlaces();
+        places = AppController.getPlaces();
+        places.clearListeners();
+
+        places.setOnPlaceInfoReceivedListener(new OnInfoReceivedListener() {
+            @Override
+            public void onInfoReceived() {
+                Collections.sort(places.getPlaceList(),comparator);
+                placeAdapter.notifyDataSetChanged();
+            }
+        });
+        places.setOnPhotoReceivedListener(new OnPhotoReceivedListener() {
+            @Override
+            public void onPhotoReceived(PlaceInfo placeInfo) {
+                if(placeInfo.getPhotos().size() > 0){
+                    placeAdapter.notifyDataSetChanged();
+                }
+            }
+        });
 
         recyclerView = findViewById(R.id.recyclerView);
         toolbar = findViewById(R.id.toolbar);
@@ -77,7 +92,7 @@ public class PlaceListActivity extends AppCompatActivity {
                             default:
                                 return false;
                         }
-                        Collections.sort(nearbyPlaces, comparator);
+                        Collections.sort(places.getPlaceList(), comparator);
                         placeAdapter.notifyDataSetChanged();
                         return true;
                     }
@@ -86,7 +101,7 @@ public class PlaceListActivity extends AppCompatActivity {
             }
         });
 
-        placeAdapter = new PlaceAdapter(nearbyPlaces);
+        placeAdapter = new PlaceAdapter(places.getPlaceList());
         placeAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
             @Override
             public void onChanged() {
@@ -95,24 +110,30 @@ public class PlaceListActivity extends AppCompatActivity {
         });
         recyclerView.setAdapter(placeAdapter);
 
-        placeIds = getIntent().getStringArrayListExtra("placesId");
         String placeType = getIntent().getStringExtra("placeType");
         getSupportActionBar().setTitle(placeType);
 
-        for(int i=0; i<placeIds.size(); i++){
-            boolean found = false;
-            for(int x=0; x<nearbyPlaces.size() && !found; x++){
-                if(placeIds.get(i).equals(nearbyPlaces.get(x).getId())){
-                    placeIds.remove(i);
-                    i--;
-                    found = true;
+        places.requestPlaceInfos();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        places.clearListeners();
+        places.setOnPlaceInfoReceivedListener(new OnInfoReceivedListener() {
+            @Override
+            public void onInfoReceived() {
+                Collections.sort(places.getPlaceList(),comparator);
+                placeAdapter.notifyDataSetChanged();
+            }
+        });
+        places.setOnPhotoReceivedListener(new OnPhotoReceivedListener() {
+            @Override
+            public void onPhotoReceived(PlaceInfo placeInfo) {
+                if(placeInfo.getPhotos().size() > 0){
+                    placeAdapter.notifyDataSetChanged();
                 }
             }
-        }
-
-        if(placeIds.size() > 0) {
-            PlaceInfoGetter placeInfoGetter = new PlaceInfoGetter(nearbyPlaces,placeAdapter,comparator);
-            placeInfoGetter.execute(placeIds.toArray(new String[placeIds.size()]));
-        }
+        });
     }
 }

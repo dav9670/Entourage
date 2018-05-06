@@ -21,14 +21,9 @@ import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.david.entourage.Application.AppController;
-import com.david.entourage.DataParser;
+import com.david.entourage.Place.OnInfoReceivedListener;
 import com.david.entourage.R;
-import com.david.entourage.Utils;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -48,23 +43,20 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.toptoche.searchablespinnerlibrary.SearchableSpinner;
 
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import static com.david.entourage.Application.AppConfig.CONNECTION_FAILURE_RESOLUTION_REQUEST;
-import static com.david.entourage.Application.AppConfig.GOOGLE_BROWSER_API_KEY;
 import static com.david.entourage.Application.AppConfig.LOCATION_PERMISSION;
-import static com.david.entourage.Application.AppConfig.TAG;
 
 //TODO Add more than 20 establishments
 //TODO Open PlaceInfoActivity from marker
 // Vendredi 16h30
 
-public class MainActivity extends AppCompatActivity
+public class MapActivity extends AppCompatActivity
     implements OnMapReadyCallback,
     ActivityCompat.OnRequestPermissionsResultCallback{
 
@@ -83,19 +75,16 @@ public class MainActivity extends AppCompatActivity
     private boolean mLocationPermissionGranted;
     private Circle radiusCircle;
     private List<String> placeTypes;
-    private ArrayList<Marker> markerList;
-    private ArrayList<HashMap<String,String>> nearbyPlacesJsons;
+    private HashMap<Marker,String> markerList;
 
-    private StringBuilder next_page_token_builder;
+    private com.david.entourage.Place.Places places;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        markerList = new ArrayList<>();
-        nearbyPlacesJsons = new ArrayList<>();
-        next_page_token_builder = new StringBuilder();
+        markerList = new HashMap<>();
 
         spinner_place = findViewById(R.id.place_spinner);
         textView_radius = findViewById(R.id.textView_radius);
@@ -104,6 +93,22 @@ public class MainActivity extends AppCompatActivity
         button_list = findViewById(R.id.button_sort);
         fragMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.fragMap));
         fragMap.getMapAsync(this);
+
+        places = AppController.getPlaces();
+        places.setOnPlaceJsonReceivedListener(new OnInfoReceivedListener() {
+            @Override
+            public void onInfoReceived() {
+                if(places.getPlaceListJson().size()>0){
+                    button_list.setVisibility(View.VISIBLE);
+                    setMarkers(places.getPlaceListJson());
+                }
+                else{
+                    button_list.setVisibility(View.INVISIBLE);
+                    Snackbar snackbar = Snackbar.make(findViewById(R.id.constraint_layout_main),"No places to show", Snackbar.LENGTH_SHORT);
+                    snackbar.show();
+                }
+            }
+        });
 
         //Sets text inside spinner
         placeTypes_Adapter = ArrayAdapter.createFromResource(this, R.array.placeTypes_UF, android.R.layout.simple_spinner_item);
@@ -144,14 +149,12 @@ public class MainActivity extends AppCompatActivity
 
         placeTypes = Arrays.asList(getResources().getStringArray(R.array.placeTypes));
 
-
         button_search.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 resetNearbyPlaces();
                 if(AppController.getLastKnownLocation() != null){
-                    getNearbyPlaces(AppController.getLastKnownLocation().getLatitude(), AppController.getLastKnownLocation().getLongitude(),radius,placeTypes.get((int) spinner_place.getSelectedItemId()));
-                    AppController.getNearbyPlaces().clear();
+                    places.requestNearbyPlaceJsons(new LatLng(AppController.getLastKnownLocation().getLatitude(),AppController.getLastKnownLocation().getLongitude()),radius,placeTypes.get((int) spinner_place.getSelectedItemId()));
                 }
                 else{
                     getLastLocation();
@@ -164,13 +167,9 @@ public class MainActivity extends AppCompatActivity
         button_list.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(nearbyPlacesJsons.size() > 0){
+                if(places.getPlaceListJson().size() > 0){
                     ArrayList<String> placesId = new ArrayList<>();
-                    for(int i=0; i<nearbyPlacesJsons.size(); i++){
-                        placesId.add(nearbyPlacesJsons.get(i).get("place_id"));
-                    }
-                    Intent intent = new Intent(MainActivity.this, PlaceListActivity.class)
-                            .putStringArrayListExtra("placesId",placesId)
+                    Intent intent = new Intent(MapActivity.this, PlaceListActivity.class)
                             .putExtra("placeType", spinner_place.getSelectedItem().toString());
                     startActivity(intent);
                 }
@@ -192,7 +191,21 @@ public class MainActivity extends AppCompatActivity
         mGoogleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         mGoogleMap.getUiSettings().setCompassEnabled(true);
         mGoogleMap.getUiSettings().setZoomControlsEnabled(true);
-
+        mGoogleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(final Marker marker) {
+                places.setOnPlaceInfoReceivedListener(new OnInfoReceivedListener() {
+                    @Override
+                    public void onInfoReceived() {
+                        Intent intent = new Intent();
+                        intent.setClass(getApplicationContext(), PlaceInfoActivity.class);
+                        intent.putExtra("placeId",markerList.get(marker));
+                        startActivity(intent);
+                    }
+                });
+                places.requesPlaceInfo(markerList.get(marker));
+            }
+        });
         //Initialize Google Play Services
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(this,
@@ -222,6 +235,26 @@ public class MainActivity extends AppCompatActivity
             }
         }
         updateLocationUI();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        places.clearListeners();
+        places.setOnPlaceJsonReceivedListener(new OnInfoReceivedListener() {
+            @Override
+            public void onInfoReceived() {
+                if(places.getPlaceListJson().size()>0){
+                    button_list.setVisibility(View.VISIBLE);
+                    setMarkers(places.getPlaceListJson());
+                }
+                else{
+                    button_list.setVisibility(View.INVISIBLE);
+                    Snackbar snackbar = Snackbar.make(findViewById(R.id.constraint_layout_main),"No places to show", Snackbar.LENGTH_SHORT);
+                    snackbar.show();
+                }
+            }
+        });
     }
 
     private void getLocationPermission() {
@@ -257,7 +290,7 @@ public class MainActivity extends AppCompatActivity
                         if( connectionResult.hasResolution() ){
                             try {
                                 // Start an Activity that tries to resolve the error
-                                connectionResult.startResolutionForResult(MainActivity.this, CONNECTION_FAILURE_RESOLUTION_REQUEST);
+                                connectionResult.startResolutionForResult(MapActivity.this, CONNECTION_FAILURE_RESOLUTION_REQUEST);
                             }catch( IntentSender.SendIntentException e ){
                                 e.printStackTrace();
                             }
@@ -267,7 +300,7 @@ public class MainActivity extends AppCompatActivity
                     }
                 })
                 .addApi(LocationServices.API)
-                 .addApi(Places.GEO_DATA_API)
+                .addApi(Places.GEO_DATA_API)
                 .build());
          AppController.getGoogleApiClient().connect();
     }
@@ -276,7 +309,7 @@ public class MainActivity extends AppCompatActivity
     public void getLastLocation(){
         getLocationPermission();
         mFusedLocationClient.getLastLocation()
-                .addOnSuccessListener(MainActivity.this, new OnSuccessListener<Location>() {
+                .addOnSuccessListener(MapActivity.this, new OnSuccessListener<Location>() {
                     @Override
                     public void onSuccess(Location location) {
                         // Got last known location. In some rare situations this can be null.
@@ -317,49 +350,22 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public void getNearbyPlaces(double latitude, double longitude, int radius, String type) {
-        StringBuilder googlePlacesURL = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
-        googlePlacesURL.append("location=").append(latitude).append(",").append(longitude);
-        googlePlacesURL.append("&radius=").append(radius);
-        googlePlacesURL.append("&type=").append(type);
-        googlePlacesURL.append("&key=").append(GOOGLE_BROWSER_API_KEY);
-
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, googlePlacesURL.toString(), null,
-                new Response.Listener<JSONObject>(){
-                    @Override
-                    public void onResponse(JSONObject result){
-                        nearbyPlacesJsons = DataParser.parse(result, next_page_token_builder);
-                        if(nearbyPlacesJsons.size()>0){
-                            button_list.setVisibility(View.VISIBLE);
-                            setMarkers(nearbyPlacesJsons);
-                        }
-                        else{
-                            button_list.setVisibility(View.INVISIBLE);
-                            Snackbar snackbar = Snackbar.make(findViewById(R.id.constraint_layout_main),"No places to show", Snackbar.LENGTH_SHORT);
-                            snackbar.show();
-                        }
-                    }
-                },
-                new Response.ErrorListener(){
-                    @Override
-                    public void onErrorResponse(VolleyError error){
-                        Log.e(TAG,"onErrorResponse: Error=" + error.getMessage());
-                        Snackbar snackbar = Snackbar.make(findViewById(R.id.constraint_layout_main),"Request failed, please retry", Snackbar.LENGTH_SHORT);
-                        snackbar.show();
-                    }
-                }
-        );
-        AppController.getInstance().addToRequestQueue(request);
-    }
-
     private void setMarkers(ArrayList<HashMap<String,String>> nearbyPlaces){
+        resetMarkers();
         for(int i=0; i<nearbyPlaces.size(); i++){
             HashMap<String,String> place = nearbyPlaces.get(i);
             MarkerOptions markerOptions = new MarkerOptions()
                     .position(new LatLng(Double.parseDouble(place.get("lat")),Double.parseDouble(place.get("lng"))))
                     .title(place.get("name") + " : " + place.get("vicinity"))
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
-            markerList.add(mGoogleMap.addMarker(markerOptions));
+            markerList.put(mGoogleMap.addMarker(markerOptions),place.get("place_id"));
+        }
+    }
+
+    private void resetMarkers(){
+        Marker markers[] = markerList.keySet().toArray(new Marker[markerList.keySet().size()]);
+        for(int i=0; i<markers.length; i++){
+            markers[i].remove();
         }
     }
 
@@ -387,13 +393,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void resetNearbyPlaces(){
-        for(int x=markerList.size()-1; x>=0; x--){
-            markerList.get(x).remove();
-            markerList.remove(x);
-        }
-        if(nearbyPlacesJsons.size() > 0){
-            nearbyPlacesJsons.clear();
-        }
+        places.clearPlaces();
+        resetMarkers();
         if(button_list.getVisibility() == View.VISIBLE){
             button_list.setVisibility(View.INVISIBLE);
         }
