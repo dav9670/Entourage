@@ -64,6 +64,7 @@ public class MapActivity extends AppCompatActivity
     private SeekBar seekBar_radius;
     private Button button_search;
     private Button button_list;
+    private TextView textView_results;
 
     private ArrayAdapter<CharSequence> placeTypes_Adapter;
     private MapFragment fragMap;
@@ -89,6 +90,7 @@ public class MapActivity extends AppCompatActivity
         seekBar_radius = findViewById(R.id.seekBar_radius);
         button_search = findViewById(R.id.button_search);
         button_list = findViewById(R.id.button_sort);
+        textView_results = findViewById(R.id.textView_results);
         fragMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.fragMap));
         fragMap.getMapAsync(this);
 
@@ -100,6 +102,8 @@ public class MapActivity extends AppCompatActivity
                 onPlaceJsonReceived();
             }
         });
+
+        textView_results.setVisibility(View.INVISIBLE);
 
         placeTypes = Arrays.asList(getResources().getStringArray(R.array.placeTypes));
 
@@ -380,11 +384,17 @@ public class MapActivity extends AppCompatActivity
         if(button_list.getVisibility() == View.VISIBLE){
             button_list.setVisibility(View.INVISIBLE);
         }
+        if(textView_results.getVisibility() == View.VISIBLE){
+            textView_results.setText("0 results");
+            textView_results.setVisibility(View.INVISIBLE);
+        }
     }
 
     public void onPlaceJsonReceived(){
         if(places.hasPlaces()){
             button_list.setVisibility(View.VISIBLE);
+            textView_results.setVisibility(View.VISIBLE);
+            textView_results.setText(places.getPlaceJsonList().size() + " results");
             setMarkers(places.getPlaceJsonList());
 
             if(places.hasMorePlaces()){
@@ -402,6 +412,7 @@ public class MapActivity extends AppCompatActivity
         }
         else{
             button_list.setVisibility(View.INVISIBLE);
+            textView_results.setVisibility(View.INVISIBLE);
             Snackbar snackbar = Snackbar.make(findViewById(R.id.constraint_layout_main),"No places to show", Snackbar.LENGTH_SHORT);
             snackbar.show();
         }

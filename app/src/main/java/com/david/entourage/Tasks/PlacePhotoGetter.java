@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.os.AsyncTask;
 
 import com.david.entourage.Application.AppController;
+import com.david.entourage.Place.OnNoPhotoReceivedListener;
 import com.david.entourage.Place.OnPhotoReceivedListener;
 import com.david.entourage.Place.PlaceInfo;
 import com.google.android.gms.location.places.PlacePhotoMetadata;
@@ -19,6 +20,7 @@ public class PlacePhotoGetter extends AsyncTask<Void, Void, PlacePhotoMetadataBu
     private int nbPhotos;
 
     private OnPhotoReceivedListener onPhotoReceivedListener;
+    private OnNoPhotoReceivedListener onNoPhotoReceivedListener;
 
     public PlacePhotoGetter(PlaceInfo placeInfo, int photoWidth, int photoHeight, int nbPhotos) {
         this.placeInfo = placeInfo;
@@ -29,6 +31,10 @@ public class PlacePhotoGetter extends AsyncTask<Void, Void, PlacePhotoMetadataBu
 
     public void setOnPhotoReceivedListener(OnPhotoReceivedListener onPhotoReceivedListener) {
         this.onPhotoReceivedListener = onPhotoReceivedListener;
+    }
+
+    public void setOnNoPhotoReceivedListener(OnNoPhotoReceivedListener onNoPhotoReceivedListener) {
+        this.onNoPhotoReceivedListener = onNoPhotoReceivedListener;
     }
 
     @Override
@@ -49,11 +55,23 @@ public class PlacePhotoGetter extends AsyncTask<Void, Void, PlacePhotoMetadataBu
     protected void onPostExecute(PlacePhotoMetadataBuffer placePhotoMetadataBuffer) {
         super.onPostExecute(placePhotoMetadataBuffer);
         if(placePhotoMetadataBuffer != null) {
-            for(int i = placeInfo.getPhotos().size(); i<placePhotoMetadataBuffer.getCount() && i< nbPhotos; i++){
-                PlacePhotoSetter placePhotoSetter = new PlacePhotoSetter();
-                placePhotoSetter.execute(placePhotoMetadataBuffer.get(i).freeze());
+            if(placePhotoMetadataBuffer.getCount() > 0){
+                for(int i = placeInfo.getPhotos().size(); i<placePhotoMetadataBuffer.getCount() && i< nbPhotos; i++){
+                    PlacePhotoSetter placePhotoSetter = new PlacePhotoSetter();
+                    placePhotoSetter.execute(placePhotoMetadataBuffer.get(i).freeze());
+                }
+            }
+            else{
+                if(onNoPhotoReceivedListener != null){
+                    onNoPhotoReceivedListener.onNoPhotoReceived(placeInfo);
+                }
             }
             placePhotoMetadataBuffer.release();
+        }
+        else{
+            if(onNoPhotoReceivedListener != null){
+                onNoPhotoReceivedListener.onNoPhotoReceived(placeInfo);
+            }
         }
     }
 

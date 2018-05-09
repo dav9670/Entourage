@@ -63,5 +63,8 @@ public class DataParser {
                 }
             }
         }
+        else{
+            next_page_token_builder.setLength(0);
+        }
     }
 }

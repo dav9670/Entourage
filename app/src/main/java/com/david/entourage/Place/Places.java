@@ -35,6 +35,7 @@ public class Places {
     private OnInfoReceivedListener onPlaceJsonReceivedListener;
     private OnInfoReceivedListener onPlaceInfoReceivedListener;
     private OnPhotoReceivedListener onPhotoReceivedListener;
+    private OnNoPhotoReceivedListener onNoPhotoReceivedListener;
 
     public Places() {
         placeJsonList = new ArrayList<>();
@@ -83,6 +84,10 @@ public class Places {
 
     public void setOnPhotoReceivedListener(OnPhotoReceivedListener onPhotoReceivedListener) {
         this.onPhotoReceivedListener = onPhotoReceivedListener;
+    }
+
+    public void setOnNoPhotoReceivedListener(OnNoPhotoReceivedListener onNoPhotoReceivedListener) {
+        this.onNoPhotoReceivedListener = onNoPhotoReceivedListener;
     }
 
     public PlaceInfo getPlaceInfo(String placeId) {
@@ -185,6 +190,7 @@ public class Places {
     public void requestPlacePhotos(PlaceInfo placeInfo, int photoWidth, int photoHeight, int nbPhotos) {
         PlacePhotoGetter placePhotoGetter = new PlacePhotoGetter(placeInfo, photoWidth, photoHeight, nbPhotos);
         placePhotoGetter.setOnPhotoReceivedListener(onPhotoReceivedListener);
+        placePhotoGetter.setOnNoPhotoReceivedListener(onNoPhotoReceivedListener);
         placePhotoGetter.execute();
     }
 
@@ -198,6 +204,7 @@ public class Places {
         onPlaceJsonReceivedListener = null;
         onPlaceInfoReceivedListener = null;
         onPhotoReceivedListener = null;
+        onNoPhotoReceivedListener = null;
     }
 }
 

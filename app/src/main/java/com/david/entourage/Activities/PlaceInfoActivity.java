@@ -6,10 +6,12 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.util.Linkify;
+import android.view.View;
 import android.widget.TextView;
 
 import com.david.entourage.Application.AppConfig;
 import com.david.entourage.Application.AppController;
+import com.david.entourage.Place.OnNoPhotoReceivedListener;
 import com.david.entourage.Place.OnPhotoReceivedListener;
 import com.david.entourage.Place.PlaceInfo;
 import com.david.entourage.Place.Places;
@@ -56,6 +58,14 @@ public class PlaceInfoActivity extends AppCompatActivity {
             @Override
             public void onPhotoReceived(PlaceInfo placeInfo) {
                 photoAdapter.notifyDataSetChanged();
+            }
+        });
+        places.setOnNoPhotoReceivedListener(new OnNoPhotoReceivedListener() {
+            @Override
+            public void onNoPhotoReceived(PlaceInfo placeInfo) {
+                if(placeInfo.getPhotos().size() == 0){
+                    recyclerView.setVisibility(View.GONE);
+                }
             }
         });
         placeInfo = places.getPlaceInfo(getIntent().getStringExtra("placeId"));
@@ -107,6 +117,14 @@ public class PlaceInfoActivity extends AppCompatActivity {
             @Override
             public void onPhotoReceived(PlaceInfo placeInfo) {
                 photoAdapter.notifyDataSetChanged();
+            }
+        });
+        places.setOnNoPhotoReceivedListener(new OnNoPhotoReceivedListener() {
+            @Override
+            public void onNoPhotoReceived(PlaceInfo placeInfo) {
+                if(placeInfo.getPhotos().size() == 0){
+                    recyclerView.setVisibility(View.GONE);
+                }
             }
         });
     }
